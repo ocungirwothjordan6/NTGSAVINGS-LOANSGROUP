@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)file:///Users/djjordan/Desktop/NTG/admin.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTG Dashboard</title>
+<style>
+/* --- Common Styles --- */
+body { font-family:'Segoe UI',sans-serif; margin:0; }
+header { padding:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+header h1 { margin:0.5rem 0; font-size:1.2rem; }
+header button { border:none; padding:0.5rem 1rem; border-radius:5px; cursor:pointer; margin-top:0.5rem; }
+.container { max-width:1200px; margin:2rem auto; background:white; padding:1rem; border-radius:10px; box-shadow:0 5px 20px rgba(0,0,0,0.1); overflow-x:auto; }
+h2 { margin-bottom:1rem; font-size:1.1rem; }
+input,select { padding:0.5rem; border-radius:5px; border:1px solid #ccc; margin-bottom:1rem; width:100%; max-width:300px; }
+table { width:100%; border-collapse:collapse; margin-bottom:1rem; min-width:600px; }
+th,td { border:1px solid #ccc; padding:0.5rem; text-align:center; font-size:0.9rem; }
+tr:nth-child(even){background:#f9f9f9;}
+button.editBtn, button.saveBtn, button.approveBtn, button.rejectBtn, button.deleteBtn, button.copyBtn, button.addLoanBtn { border:none; padding:0.3rem 0.6rem; border-radius:5px; cursor:pointer; margin:0 2px; }
+button.editBtn { background:#17a2b8; color:white; }
+button.saveBtn { background:#28a745; color:white; }
+button.approveBtn { background:#046307; color:white; }
+button.rejectBtn { background:#d32f2f; color:white; }
+button.deleteBtn { background:#ff4d4d; color:white; }
+button.copyBtn { background:#ffc107; color:black; }
+button.addLoanBtn { background:#104e8b; color:white; margin-top:0.5rem; }
+.loan-cards { display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+.loan-card { flex:1 1 250px; padding:1rem; border-radius:10px; color:white; box-shadow:0 5px 15px rgba(0,0,0,0.1); transition:transform 0.3s; }
+.loan-card.green { background:#28a745; }
+.loan-card.yellow { background:#ffc107; color:black; }
+.loan-card.red { background:#dc3545; }
+.loan-card:hover { transform:translateY(-5px); }
+.loan-card h4 { margin-bottom:0.5rem; }
+.loan-card p { margin-bottom:0.3rem; }
+@media(max-width:768px){
+  header{flex-direction:column; align-items:flex-start;}
+  header button{margin-top:0.5rem;}
+  table{min-width:100%; font-size:0.8rem;}
+  .loan-card{flex:1 1 100%;}
+}
+/* --- Role-specific styles --- */
+body.admin { background:#f5fff5; }
+body.member { background:#f0f8ff; }
+header.admin { background:#046307; color:white; }
+header.member { background:#1e90ff; color:white; }
+header.admin button { background:#034b02; color:white; }
+header.member button { background:#104e8b; color:white; }
+h2.admin { color:#046307; }
+h2.member { color:#1e90ff; }
+th.admin { background:#046307; color:white; }
+th.member { background:#1e90ff; color:white; }
+.member-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; max-width:500px; }
+.member-row span { flex:1; margin-right:10px; cursor:pointer; }
+</style>
+</head>
+<body class="admin">
+
+<header id="header" class="admin">
+  <h1 id="headerTitle">NTG Master Admin Dashboard</h1>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<!-- Admin Section -->
+<div class="container" id="adminSection" style="display: block;">
+  <h2 class="admin">Add New Member</h2>
+  <div style="margin-bottom:1rem;">
+    <input type="text" id="newMemberName" placeholder="New Member Name">
+    <button onclick="addMember()" style="background:#28a745; color:white;">Add Member</button>
+  </div>
+
+  <h2 class="admin">Select Member</h2>
+  <select id="memberSelect"><option value="OcungirwothJordan">OcungirwothJordan</option><option value="kabilajoseph">kabilajoseph</option><option value="rwothomioceasar">rwothomioceasar</option><option value="oyirwothronnie">oyirwothronnie</option><option value="oyirwothfranklin">oyirwothfranklin</option><option value="jalochjavan">jalochjavan</option><option value="harmonydifoyos">harmonydifoyos</option><option value="diallokeiron">diallokeiron</option><option value="okwairwotherick">okwairwotherick</option><option value="wiyacungudeogracious">wiyacungudeogracious</option><option value="jalochtimothy">jalochtimothy</option><option value="kristotekjonathan">kristotekjonathan</option><option value="michpamunguarthur">michpamunguarthur</option><option value="goflerashid">goflerashid</option><option value="rwothongeoinnocent">rwothongeoinnocent</option><option value="mungungeodavid">mungungeodavid</option></select>
+
+  <h2 class="admin">Members</h2>
+  <div id="memberList"><div class="member-row"><span>OcungirwothJordan (Ocun@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>kabilajoseph (kabi@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>rwothomioceasar (rwot@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>oyirwothronnie (oyir@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>oyirwothfranklin (oyir@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>jalochjavan (jalo@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>harmonydifoyos (harm@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>diallokeiron (dial@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>okwairwotherick (okwa@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>wiyacungudeogracious (wiya@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>jalochtimothy (jalo@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>kristotekjonathan (kris@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>michpamunguarthur (mich@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>goflerashid (gofl@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>rwothongeoinnocent (rwot@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div><div class="member-row"><span>mungungeodavid (mung@ntg)</span><button class="copyBtn">Copy Password</button><button class="deleteBtn">Delete</button></div></div>
+
+  <h2 class="admin">Add Loan</h2>
+  <div>
+    <input type="number" id="loanAmount" placeholder="Loan Amount">
+    <input type="date" id="loanRequestDate">
+    <input type="date" id="loanRepaymentDate">
+    <button class="addLoanBtn" onclick="addLoan()">Add Loan</button>
+  </div>
+</div>
+
+<!-- Dashboard Section -->
+<div class="container" id="dashboardSection">
+  <h2 id="welcomeTitle"></h2>
+
+  <h2 id="monthlyTitle">Monthly Savings</h2>
+  <table id="monthlyTable">
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Saved</th>
+        <th>Fines</th>
+        <th>Interest Gained</th>
+        <th id="monthlyActionsHeader">Actions</th>
+      </tr>
+    </thead>
+    <tbody><tr><td>January</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;January&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;January&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;January&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>February</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;February&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;February&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;February&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>March</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;March&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;March&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;March&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>April</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;April&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;April&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;April&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>May</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;May&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;May&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;May&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>June</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;June&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;June&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;June&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>July</td><td><input type="number" value="20000" onchange="updateMonthly(&quot;July&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;July&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;July&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>August</td><td><input type="number" value="0" onchange="updateMonthly(&quot;August&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;August&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;August&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>September</td><td><input type="number" value="0" onchange="updateMonthly(&quot;September&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;September&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;September&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>October</td><td><input type="number" value="0" onchange="updateMonthly(&quot;October&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;October&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;October&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>November</td><td><input type="number" value="0" onchange="updateMonthly(&quot;November&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;November&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;November&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr><tr><td>December</td><td><input type="number" value="0" onchange="updateMonthly(&quot;December&quot;,&quot;saved&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;December&quot;,&quot;fines&quot;,this.value)"></td><td><input type="number" value="0" onchange="updateMonthly(&quot;December&quot;,&quot;interest&quot;,this.value)"></td><td>Editable</td></tr></tbody>
+  </table>
+
+  <h2 id="loanSummaryTitle">Loans</h2>
+  <div class="loan-cards" id="loanCards"></div>
+
+  <h2 id="loanTableTitle">Loan Requests</h2>
+  <table id="loanTable">
+    <thead>
+      <tr>
+        <th>Amount</th>
+        <th>Requested On</th>
+        <th>Approved On</th>
+        <th>Repayment Date</th>
+        <th>Status</th>
+        <th>Duration (days)</th>
+        <th id="loanActionsHeader">Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+let isAdmin = localStorage.getItem("isAdmin")==="true";
+let loggedInUser = localStorage.getItem("loggedInUser");
+let members = JSON.parse(localStorage.getItem("members")) || {};
+let currentMemberKey = loggedInUser;
+
+// --- ROLE STYLING ---
+document.body.classList.add(isAdmin?"admin":"member");
+document.getElementById("header").classList.add(isAdmin?"admin":"member");
+document.getElementById("headerTitle").textContent = isAdmin?"NTG Master Admin Dashboard":"NTG Member Dashboard";
+if(!isAdmin){ document.getElementById("welcomeTitle").textContent="Welcome, "+loggedInUser; }
+if(isAdmin){ document.getElementById("adminSection").style.display="block"; }
+
+// --- REFRESH ---
+function refreshUI(){
+  members = JSON.parse(localStorage.getItem("members")) || {};
+  renderMonthly();
+  renderLoans();
+  if(isAdmin){ populateMemberList(); populateMemberSelect(); }
+}
+
+// --- MEMBERS ---
+function populateMemberSelect(){
+  let sel=document.getElementById("memberSelect");
+  sel.innerHTML="";
+  Object.keys(members).forEach(k=>{
+    let opt=document.createElement("option");
+    opt.value=k; opt.textContent=k;
+    sel.appendChild(opt);
+  });
+  if(members[currentMemberKey]) sel.value=currentMemberKey;
+}
+document.getElementById("memberSelect").addEventListener("change",e=>{
+  currentMemberKey=e.target.value;
+  refreshUI();
+});
+
+function populateMemberList(){
+  let list=document.getElementById("memberList");
+  list.innerHTML="";
+  Object.keys(members).forEach(k=>{
+    let row=document.createElement("div");
+    row.className="member-row";
+    let span=document.createElement("span");
+    span.textContent=`${k} (${members[k].password})`;
+    span.onclick=()=>{ currentMemberKey=k; document.getElementById("memberSelect").value=k; refreshUI(); };
+    row.appendChild(span);
+
+    let copyBtn=document.createElement("button");
+    copyBtn.textContent="Copy Password"; copyBtn.className="copyBtn";
+    copyBtn.onclick=()=>{navigator.clipboard.writeText(members[k].password); alert(`Password for ${k} copied!`);};
+    row.appendChild(copyBtn);
+
+    let delBtn=document.createElement("button");
+    delBtn.textContent="Delete"; delBtn.className="deleteBtn";
+    delBtn.onclick=()=>{ if(confirm(`Delete ${k}?`)){ delete members[k]; localStorage.setItem("members",JSON.stringify(members)); refreshUI(); } };
+    row.appendChild(delBtn);
+
+    list.appendChild(row);
+  });
+}
+function addMember(){
+  let name=document.getElementById("newMemberName").value.trim();
+  if(!name) return alert("Enter name!");
+  if(members[name]) return alert("Exists!");
+  let password=name.substring(0,4).toLowerCase()+"@ntg";
+  members[name]={username:name,password,monthly:{},loanRequests:[],interestGained:0};
+  localStorage.setItem("members",JSON.stringify(members));
+  document.getElementById("newMemberName").value="";
+  alert(`Added!\nUsername: ${name}\nPassword: ${password}`);
+  refreshUI();
+}
+
+// --- MONTHLY ---
+function renderMonthly(){
+  let tbody=document.querySelector("#monthlyTable tbody");
+  tbody.innerHTML="";
+  let mObj=members[currentMemberKey];
+  if(!mObj) return;
+  let months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  months.forEach(m=>{
+    let row=tbody.insertRow();
+    row.insertCell(0).textContent=m;
+    let sCell=row.insertCell(1), fCell=row.insertCell(2), iCell=row.insertCell(3);
+    if(isAdmin){
+      sCell.innerHTML=`<input type='number' value='${mObj.monthly[m]?.saved||0}' onchange='updateMonthly("${m}","saved",this.value)'>`;
+      fCell.innerHTML=`<input type='number' value='${mObj.monthly[m]?.fines||0}' onchange='updateMonthly("${m}","fines",this.value)'>`;
+      iCell.innerHTML=`<input type='number' value='${mObj.monthly[m]?.interest||0}' onchange='updateMonthly("${m}","interest",this.value)'>`;
+    } else {
+      sCell.textContent=mObj.monthly[m]?.saved||0;
+      fCell.textContent=mObj.monthly[m]?.fines||0;
+      iCell.textContent=mObj.monthly[m]?.interest||0;
+    }
+    row.insertCell(4).textContent=isAdmin?"Editable":"";
+  });
+}
+function updateMonthly(month,type,val){
+  let mObj=members[currentMemberKey];
+  if(!mObj.monthly[month]) mObj.monthly[month]={saved:0,fines:0,interest:0};
+  mObj.monthly[month][type]=Number(val)||0;
+  mObj.interestGained=Object.values(mObj.monthly).reduce((sum,x)=>sum+(x.interest||0),0);
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+// --- LOANS ---
+function renderLoans(){
+  let tbody=document.querySelector("#loanTable tbody"); tbody.innerHTML="";
+  let cards=document.getElementById("loanCards"); cards.innerHTML="";
+  let mObj=members[currentMemberKey];
+  if(!mObj) return;
+  mObj.loanRequests.forEach((loan,i)=>{
+    let row=tbody.insertRow();
+    row.insertCell(0).innerHTML=isAdmin?`<input type='number' value='${loan.amount}' onchange='updateLoan(${i},"amount",this.value)'>`:loan.amount;
+    row.insertCell(1).textContent=loan.requestDate||"-";
+    row.insertCell(2).textContent=loan.approvedDate||"-";
+    row.insertCell(3).textContent=loan.repaymentDate||"-";
+    row.insertCell(4).textContent=loan.status||"Pending";
+    let d1=new Date(loan.requestDate), d2=new Date(loan.repaymentDate);
+    row.insertCell(5).textContent=(!isNaN(d1)&&!isNaN(d2))?Math.ceil((d2-d1)/(1000*60*60*24))+" days":"-";
+    let aCell=row.insertCell(6);
+    if(isAdmin && loan.status==="Pending"){
+      let ok=document.createElement("button"); ok.textContent="Approve"; ok.className="approveBtn"; ok.onclick=()=>approveLoan(currentMemberKey,i);
+      let no=document.createElement("button"); no.textContent="Reject"; no.className="rejectBtn"; no.onclick=()=>rejectLoan(currentMemberKey,i);
+      aCell.appendChild(ok); aCell.appendChild(no);
+    }
+    let card=document.createElement("div");
+    card.className="loan-card "+(loan.status==="Approved"?"green":loan.status==="Rejected"?"red":"yellow");
+    let diff=Math.ceil((new Date(loan.repaymentDate)-new Date())/(1000*60*60*24));
+    card.innerHTML=`<h4>Loan: ${loan.amount}</h4>
+                    <p>Status: ${loan.status}</p>
+                    <p>Approved On: ${loan.approvedDate||"-"}</p>
+                    <p>Repayment Date: ${loan.repaymentDate||"-"}</p>
+                    <p>Days Remaining: ${diff>=0?diff:0}</p>`;
+    cards.appendChild(card);
+  });
+}
+function addLoan(){
+  if(!currentMemberKey) return alert("Select member!");
+  let amt=document.getElementById("loanAmount").value;
+  let req=document.getElementById("loanRequestDate").value;
+  let rep=document.getElementById("loanRepaymentDate").value;
+  if(!amt||!req||!rep) return alert("Fill all fields!");
+  members[currentMemberKey].loanRequests.push({amount:Number(amt),requestDate:req,repaymentDate:rep,status:"Pending"});
+  localStorage.setItem("members",JSON.stringify(members));
+  document.getElementById("loanAmount").value=""; document.getElementById("loanRequestDate").value=""; document.getElementById("loanRepaymentDate").value="";
+  refreshUI();
+}
+function updateLoan(i,f,v){
+  members[currentMemberKey].loanRequests[i][f]=f==="amount"?Number(v)||0:v;
+  localStorage.setItem("members",JSON.stringify(members));
+}
+function approveLoan(k,i){
+  members[k].loanRequests[i].status="Approved";
+  members[k].loanRequests[i].approvedDate=new Date().toISOString().split("T")[0];
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+function rejectLoan(k,i){
+  members[k].loanRequests[i].status="Rejected";
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+// --- LOGOUT ---
+function logout(){ localStorage.removeItem("isAdmin"); localStorage.removeItem("loggedInUser"); window.location.href="login.html"; }
+
+// --- INITIAL ---
+refreshUI();
+</script>
+
+
+</body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<style>
+body{font-family:'Segoe UI',sans-serif; background:#f5fff5; padding:1rem;}
+h2{text-align:center; color:#046307;}
+.container{max-width:1000px;margin:auto;}
+table{width:100%;border-collapse:collapse;margin-bottom:2rem;}
+th,td{border:1px solid #ccc;padding:0.5rem;text-align:center;}
+th{background:#046307;color:white;}
+button{padding:0.3rem 0.6rem;background:#046307;color:white;border:none;border-radius:5px;cursor:pointer;}
+button:hover{background:#034b02;}
+</style>
+</head>
+<body>
+
+<h2>Admin Dashboard</h2>
+<div class="container">
+  <h3>Member Loan Requests</h3>
+  <table id="requestTable">
+    <tr>
+      <th>Member</th><th>Amount</th><th>Status</th><th>Requested On</th><th>Repayment Date</th><th>Actions</th>
+    </tr>
+  </table>
+</div>
+
+<script>
+const adminUser = localStorage.getItem("loggedInUser");
+if(!adminUser || localStorage.getItem("role")!=="admin") window.location.href="index.html";
+
+let members = JSON.parse(localStorage.getItem("members"));
+
+function renderRequests(){
+  let html="";
+  for(const name in members){
+    const mem = members[name];
+    mem.loanRequests.forEach((l,i)=>{
+      html+=`<tr>
+        <td>${name}</td>
+        <td>${l.amount}</td>
+        <td>${l.status}</td>
+        <td>${l.dateRequested}</td>
+        <td>${l.repaymentDate||"-"}</td>
+        <td>
+          ${l.status==="pending"?`<button onclick="approveLoan('${name}',${i})">Approve</button>
+          <button onclick="rejectLoan('${name}',${i})">Reject</button>`:"-"}
+        </td>
+      </tr>`;
+    });
+  }
+  document.getElementById("requestTable").innerHTML=`<tr>
+    <th>Member</th><th>Amount</th><th>Status</th><th>Requested On</th><th>Repayment Date</th><th>Actions</th>
+  </tr>`+html;
+}
+
+function approveLoan(memberName,index){
+  const today = new Date();
+  let mem = members[memberName];
+  mem.loanRequests[index].status="approved";
+  mem.loanRequests[index].repaymentDate = new Date(today.setDate(today.getDate()+30)).toLocaleDateString();
+  mem.numberOfLoans +=1;
+  members[memberName]=mem;
+  localStorage.setItem("members",JSON.stringify(members));
+  renderRequests();
+  alert("Loan approved and repayment date set!");
+}
+
+function rejectLoan(memberName,index){
+  let mem = members[memberName];
+  mem.loanRequests[index].status="rejected";
+  members[memberName]=mem;
+  localStorage.setItem("members",JSON.stringify(members));
+  renderRequests();
+  alert("Loan rejected!");
+}
+
+renderRequests();
+</script>
+</body>
+</html>

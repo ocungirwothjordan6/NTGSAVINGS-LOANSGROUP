@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTG Dashboard</title>
+<style>
+/* --- Common Styles --- */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  background: #f7f9fc;
+  color: #2d3748;
+}
+header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #046307 0%, #05710a 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+header .nav-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+button {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+header button.navBtn {
+  background: #034b02;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+header button.navBtn.active {
+  background: #05710a;
+  box-shadow: 0 0 0 3px rgba(5, 113, 10, 0.3);
+}
+header button.navBtn:hover {
+  background: #05710a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+header button.navBtn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+header button.navBtn:hover::after {
+  width: 200px;
+  height: 200px;
+}
+header button.logoutBtn {
+  background: #e53e3e;
+  color: white;
+}
+header button.logoutBtn:hover {
+  background: #c53030;
+  transform: translateY(-2px);
+}
+.container {
+  max-width: 1280px;
+  margin: 2rem auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow-x: auto;
+}
+h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+input, select {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 350px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: #046307;
+  box-shadow: 0 0 0 3px rgba(4, 99, 7, 0.1);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  min-width: 600px;
+}
+th, td {
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+th {
+  background: #046307;
+  color: white;
+  font-weight: 600;
+}
+tr:nth-child(even) {
+  background: #f7fafc;
+}
+tr:hover {
+  background: #edf2f7;
+}
+button.editBtn, button.saveBtn, button.approveBtn, button.rejectBtn, button.deleteBtn, button.copyBtn, button.addLoanBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin: 0 3px;
+  transition: all 0.2s ease;
+}
+button.editBtn { background: #3182ce; }
+button.saveBtn { background: #28a745; }
+button.approveBtn { background: #046307; }
+button.rejectBtn { background: #e53e3e; }
+button.deleteBtn { background: #f56565; }
+button.copyBtn { background: #f6e05e; color: #1a202c; }
+button.addLoanBtn { background: #2b6cb0; margin-top: 0.5rem; }
+button.editBtn:hover, button.saveBtn:hover, button.approveBtn:hover, button.rejectBtn:hover, button.deleteBtn:hover, button.copyBtn:hover, button.addLoanBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+.loan-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.loan-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.loan-card.green { background: #28a745; }
+.loan-card.yellow { background: #f6e05e; color: #1a202c; }
+.loan-card.red { background: #e53e3e; }
+.loan-card.blue { background: #3182ce; }
+.loan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.loan-card h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.loan-card p {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+.loan-mini {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  max-width: 600px;
+  transition: background 0.2s ease;
+}
+.member-row:hover {
+  background: #edf2f7;
+}
+.member-row span {
+  flex: 1;
+  margin-right: 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.checkbox-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+.checkbox-row label {
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.breakdown {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+@media (max-width: 768px) {
+  header { flex-direction: column; align-items: flex-start; padding: 1rem; }
+  header .nav-container { flex-wrap: wrap; justify-content: center; }
+  header button { margin: 0.5rem; }
+  .container { margin: 1rem; padding: 1rem; }
+  table { min-width: 100%; font-size: 0.85rem; }
+  .loan-card { flex: 1 1 100%; }
+}
+/* --- Role-specific styles --- */
+body.member { background: #edf2f7; }
+header.member { background: linear-gradient(90deg, #1e90ff 0%, #4299e1 100%); }
+header.member button { background: #2b6cb0; }
+header.member button:hover { background: #2c5282; }
+h2.member { color: #2b6cb0; }
+th.member { background: #2b6cb0; }
+</style>
+</head>
+<body>
+
+<header id="header">
+  <h1 id="headerTitle"></h1>
+  <div class="nav-container">
+    <button class="navBtn active" onclick="showSection('dashboard')" id="dashboardNav">Dashboard</button>
+    <button class="navBtn" onclick="showSection('members')" id="membersNav" style="display:none;">Members</button>
+    <button class="navBtn" onclick="showSection('addMember')" id="addMemberNav" style="display:none;">Add Member</button>
+    <button class="navBtn" onclick="showSection('addLoan')" id="addLoanNav" style="display:none;">Add Loan</button>
+    <button class="navBtn" onclick="showSection('statements')" id="statementsNav" style="display:none;">Statements</button>
+    <button class="logoutBtn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<!-- Admin Section: Add Member -->
+<div class="container" id="addMemberSection" style="display:none;">
+  <h2 class="admin">Add New Member</h2>
+  <div style="margin-bottom:1.5rem;">
+    <input type="text" id="newMemberName" placeholder="New Member Name">
+    <button onclick="addMember()" style="background:#28a745; color:white;">Add Member</button>
+  </div>
+</div>
+
+<!-- Admin Section: Members -->
+<div class="container" id="membersSection" style="display:none;">
+  <h2 class="admin">Select Member</h2>
+  <select id="memberSelect"></select>
+  <h2 class="admin">Members</h2>
+  <div id="memberList"></div>
+</div>
+
+<!-- Admin Section: Statements -->
+<div class="container" id="statementsSection" style="display:none;">
+  <h2 class="admin">Monthly Statements</h2>
+  <select id="statementMonth">
+    <option value="All">All Months</option>
+  </select>
+  <button onclick="generateStatement()">View Statement</button>
+  <div id="statementDiv" style="overflow-x:auto; margin-top:1.5rem;"></div>
+  <button onclick="downloadStatementPDF()" style="margin-top:1rem; background:#28a745; color:white;">Download PDF</button>
+</div>
+
+<!-- Admin Section: Add Loan -->
+<div class="container" id="addLoanSection" style="display:none;">
+  <h2 class="admin">Add Loan</h2>
+  <div>
+    <input type="number" id="loanAmount" placeholder="Loan Amount">
+    <input type="date" id="loanRequestDate">
+    <input type="date" id="loanRepaymentDate">
+    <button class="addLoanBtn" onclick="addLoan()">Add Loan</button>
+  </div>
+</div>
+
+<!-- Dashboard Section -->
+<div class="container" id="dashboardSection">
+  <h2 id="welcomeTitle"></h2>
+  <div id="totalsDiv"></div>
+  <h2 id="monthlyTitle">Monthly Savings</h2>
+  <table id="monthlyTable">
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Saved</th>
+        <th>Fines</th>
+        <th>Interest Gained</th>
+        <th id="monthlyActionsHeader">Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <h2 id="loanSummaryTitle">Loans</h2>
+  <div class="loan-cards" id="loanCards"></div>
+  <h2 id="loanTableTitle">Loan Requests</h2>
+  <table id="loanTable">
+    <thead>
+      <tr>
+        <th>Amount</th>
+        <th>Requested On</th>
+        <th>Approved On</th>
+        <th>Repayment Date</th>
+        <th>Status</th>
+        <th>Default</th>
+        <th>Duration (days)</th>
+        <th id="loanActionsHeader">Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- Include jsPDF library for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+let isAdmin = localStorage.getItem("isAdmin")==="true";
+let loggedInUser = localStorage.getItem("loggedInUser");
+let members = JSON.parse(localStorage.getItem("members")) || {};
+let currentMemberKey = loggedInUser;
+
+/* ---------- Helpers added (no UI changes) ---------- */
+const DEFAULT_INTEREST_RATE = 0.20; // 20%
+const GRACE_DAYS = 7;
+const DEFAULT_FINE_RATE = 0.20;
+
+function ensureCurrentMember() {
+  if (isAdmin) {
+    const keys = Object.keys(members);
+    if (!currentMemberKey || !members[currentMemberKey]) {
+      currentMemberKey = keys.length ? keys[0] : null;
+    }
+  } else {
+    if (!currentMemberKey || !members[currentMemberKey]) {
+      currentMemberKey = loggedInUser || null;
+    }
+  }
+}
+
+function dateToYMD(d){
+  if(!(d instanceof Date)) d = new Date(d);
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  return local.toISOString().split('T')[0];
+}
+function addDays(dateStr, days){
+  const d = new Date(dateStr);
+  d.setDate(d.getDate()+days);
+  return dateToYMD(d);
+}
+
+/* Inject interest fields if missing and compute totals */
+function normalizeLoan(loan){
+  if (loan.iron == null) loan.interestRate = DEFAULT_INTEREST_RATE;
+  const principal = Number(loan.amount)||0;
+  loan.principal = principal;
+  loan.interestAmount = Math.round(principal * loan.interestRate);
+  loan.totalDue = principal + loan.interestAmount;
+  loan.graceDate = addDays(loan.repaymentDate, GRACE_DAYS);
+  return loan;
+}
+
+/* ---------- ROLE STYLING ---------- */
+document.body.classList.add(isAdmin?"admin":"member");
+document.getElementById("header").classList.add(isAdmin?"admin":"member");
+document.getElementById("headerTitle").textContent = isAdmin?"NTG Master Admin Dashboard":"NTG Member Dashboard";
+if(!isAdmin){ 
+  document.getElementById("welcomeTitle").textContent="Welcome, "+loggedInUser; 
+} else {
+  document.getElementById("membersNav").style.display = "inline-block";
+  document.getElementById("addMemberNav").style.display = "inline-block";
+  document.getElementById("addLoanNav").style.display = "inline-block";
+  document.getElementById("statementsNav").style.display = "inline-block";
+}
+
+/* ---------- NAVIGATION ---------- */
+function showSection(section) {
+  document.getElementById("dashboardSection").style.display = section === "dashboard" ? "block" : "none";
+  document.getElementById("membersSection").style.display = section === "members" ? "block" : "none";
+  document.getElementById("addMemberSection").style.display = section === "addMember" ? "block" : "none";
+  document.getElementById("addLoanSection").style.display = section === "addLoan" ? "block" : "none";
+  document.getElementById("statementsSection").style.display = section === "statements" ? "block" : "none";
+  document.getElementById("dashboardNav").classList.toggle("active", section === "dashboard");
+  document.getElementById("membersNav").classList.toggle("active", section === "members");
+  document.getElementById("addMemberNav").classList.toggle("active", section === "addMember");
+  document.getElementById("addLoanNav").classList.toggle("active", section === "addLoan");
+  document.getElementById("statementsNav").classList.toggle("active", section === "statements");
+  if (section === "members") {
+    populateMemberList();
+    populateMemberSelect();
+  }
+  if (section === "dashboard") {
+    refreshUI();
+  }
+}
+
+/* ---------- REFRESH ---------- */
+function refreshUI(){
+  members = JSON.parse(localStorage.getItem("members")) || {};
+  ensureCurrentMember();
+  checkAllDefaults();
+  renderTotals();
+  renderMonthly();
+  renderLoans();
+}
+
+/* ---------- TOTALS ---------- */
+function renderTotals(){
+  ensureCurrentMember();
+  let mObj = members[currentMemberKey];
+  if(!mObj) { document.getElementById("totalsDiv").innerHTML=""; return; }
+  let totalSaved=0, totalFines=0, totalInterest=0;
+  Object.values(mObj.monthly).forEach(m=>{
+    totalSaved+=m.saved||0;
+    totalFines+=m.fines||0;
+    totalInterest+=m.interest||0;
+  });
+  let principalSum = 0, interestSum = 0, totalSum = 0;
+  mObj.loanRequests.forEach(l=>{
+    const L = normalizeLoan(l);
+    principalSum += L.principal||0;
+    interestSum  += L.interestAmount||0;
+    totalSum     += L.totalDue||0;
+  });
+  let totalLoans=mObj.loanRequests.length;
+  let approvedLoans=mObj.loanRequests.filter(l=>l.status==="Approved").length;
+  let paidLoans=mObj.loanRequests.filter(l=>l.status==="Paid").length;
+  document.getElementById("totalsDiv").innerHTML=`
+    <h2>Totals for ${currentMemberKey}</h2>
+    <p><strong>Total Savings:</strong> ${totalSaved}</p>
+    <p><strong>Total Fines:</strong> ${totalFines}</p>
+    <p><strong>Total Interest (Savings):</strong> ${totalInterest}</p>
+    <p><strong>Loans: Principal Sum:</strong> ${principalSum}</p>
+    <p><strong>Loans: Interest Sum (at 20%):</strong> ${interestSum}</p>
+    <p><strong>Loans: Total Due (Principal + Interest):</strong> ${totalSum}</p>
+    <p><strong>Total Loans Requested:</strong> ${totalLoans}</p>
+    <p><strong>Total Loans Approved:</strong> ${approvedLoans}</p>
+    <p><strong>Total Loans Paid:</strong> ${paidLoans}</p>
+  `;
+}
+
+/* ---------- MEMBERS ---------- */
+function populateMemberSelect(){
+  let sel=document.getElementById("memberSelect");
+  const prev = sel.value;
+  sel.innerHTML="";
+  Object.keys(members).forEach(k=>{
+    let opt=document.createElement("option");
+    opt.value=k; opt.textContent=k;
+    sel.appendChild(opt);
+  });
+  if (members[currentMemberKey]) {
+    sel.value=currentMemberKey;
+  } else if (prev && members[prev]) {
+    currentMemberKey = prev;
+    sel.value=prev;
+  } else if (Object.keys(members).length) {
+    currentMemberKey = Object.keys(members)[0];
+    sel.value=currentMemberKey;
+  }
+}
+document.getElementById("memberSelect").addEventListener("change",e=>{
+  currentMemberKey=e.target.value;
+  showSection("dashboard");
+});
+
+function populateMemberList(){
+  let list=document.getElementById("memberList");
+  list.innerHTML="";
+  Object.keys(members).forEach(k=>{
+    let row=document.createElement("div");
+    row.className="member-row";
+    let span=document.createElement("span");
+    span.textContent=`${k} (${members[k].password})`;
+    span.onclick=()=>{ 
+      currentMemberKey=k; 
+      document.getElementById("memberSelect").value=k; 
+      showSection("dashboard"); 
+    };
+    row.appendChild(span);
+    let copyBtn=document.createElement("button");
+    copyBtn.textContent="Copy Password"; copyBtn.className="copyBtn";
+    copyBtn.onclick=()=>{navigator.clipboard.writeText(members[k].password); alert(`Password for ${k} copied!`);};
+    row.appendChild(copyBtn);
+    let delBtn=document.createElement("button");
+    delBtn.textContent="Delete"; delBtn.className="deleteBtn";
+    delBtn.onclick=()=>{ 
+      if(confirm(`Delete ${k}?`)){ 
+        delete members[k]; 
+        localStorage.setItem("members",JSON.stringify(members)); 
+        if(currentMemberKey===k){ currentMemberKey=null; } 
+        showSection("members"); 
+      } 
+    };
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+
+function addMember(){
+  let name=document.getElementById("newMemberName").value.trim();
+  if(!name) return alert("Enter name!");
+  if(members[name]) return alert("Exists!");
+  let password=name.substring(0,4).toLowerCase()+"@ntg";
+  members[name]={username:name,password,monthly:{},loanRequests:[],interestGained:0};
+  localStorage.setItem("members",JSON.stringify(members));
+  document.getElementById("newMemberName").value="";
+  alert(`Added!\nUsername: ${name}\nPassword: ${password}`);
+  showSection("members");
+}
+
+/* ---------- MONTHLY ---------- */
+function renderMonthly(){
+  let tbody=document.querySelector("#monthlyTable tbody");
+  tbody.innerHTML="";
+  ensureCurrentMember();
+  let mObj=members[currentMemberKey];
+  if(!mObj) return;
+  let months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  months.forEach(m=>{
+    let row=tbody.insertRow();
+    row.insertCell(0).textContent=m;
+    let sCell=row.insertCell(1), fCell=row.insertCell(2), iCell=row.insertCell(3);
+    if(isAdmin){
+      sCell.innerHTML=`<input type='number' value='${mObj.monthly[m]?.saved||0}' onchange='updateMonthly("${m}","saved",this.value)'>`;
+      fCell.innerHTML=`<input type='number' value='${mObj.monthly[m]?.fines||0}' onchange='updateMonthly("${m}","fines",this.value)'>`;
+      iCell.innerHTML=`<input type='number' value='${mObj.monthly[m]?.interest||0}' onchange='updateMonthly("${m}","interest",this.value)'>`;
+    } else {
+      sCell.textContent=mObj.monthly[m]?.saved||0;
+      fCell.textContent=mObj.monthly[m]?.fines||0;
+      iCell.textContent=mObj.monthly[m]?.interest||0;
+    }
+    row.insertCell(4).textContent=isAdmin?"Editable":"";
+  });
+}
+
+function updateMonthly(month,type,val){
+  let mObj=members[currentMemberKey];
+  if(!mObj.monthly[month]) mObj.monthly[month]={saved:0,fines:0,interest:0};
+  mObj.monthly[month][type]=Number(val)||0;
+  mObj.interestGained=Object.values(mObj.monthly).reduce((sum,x)=>sum+(x.interest||0),0);
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+/* ---------- LOANS ---------- */
+function renderLoans(){
+  let tbody=document.querySelector("#loanTable tbody"); tbody.innerHTML="";
+  let cards=document.getElementById("loanCards"); cards.innerHTML="";
+  ensureCurrentMember();
+  let mObj=members[currentMemberKey];
+  if(!mObj) return;
+  mObj.loanRequests.forEach((loan,i)=>{
+    const L = normalizeLoan(loan);
+    let row=tbody.insertRow();
+    const amountCellContent = isAdmin
+      ? `<input type='number' value='${L.principal}' onchange='updateLoan(${i},"amount",this.value)'><div class="breakdown">20% interest: ${L.interestAmount} | Total: ${L.totalDue}</div>`
+      : `${L.principal}<div class="loan-mini">Interest (20%): ${L.interestAmount} • Total: ${L.totalDue}</div>`;
+    row.insertCell(0).innerHTML = amountCellContent;
+    row.insertCell(1).textContent=L.requestDate||"-";
+    row.insertCell(2).textContent=L.approvedDate||"-";
+    const repCell = row.insertCell(3);
+    repCell.innerHTML = isAdmin
+      ? `<input type="date" value="${L.repaymentDate||""}" onchange='updateLoan(${i},"repaymentDate",this.value)'>`
+      : (L.repaymentDate||"-");
+    row.insertCell(4).textContent=L.status||"Pending";
+    const defaultCell = row.insertCell(5);
+    defaultCell.textContent = L.defaulted ? `Yes (Fine: ${L.fine || 0})` : "No";
+    let d1=new Date(L.requestDate), d2=new Date(L.repaymentDate);
+    row.insertCell(6).textContent=(!isNaN(d1)&&!isNaN(d2))?Math.ceil((d2-d1)/(1000*60*60*24))+" days":"-";
+    let aCell=row.insertCell(7);
+    if(isAdmin){
+      if(L.status==="Pending"){
+        let ok=document.createElement("button"); ok.textContent="Approve"; ok.className="approveBtn"; ok.onclick=()=>approveLoan(currentMemberKey,i);
+        let no=document.createElement("button"); no.textContent="Reject"; no.className="rejectBtn"; no.onclick=()=>rejectLoan(currentMemberKey,i);
+        aCell.appendChild(ok); aCell.appendChild(no);
+      }
+      if(L.status==="Approved"){
+        const wrap = document.createElement('div');
+        wrap.className = 'checkbox-row';
+        const fullId = `full_${i}`;
+        const intId  = `int_${i}`;
+        const fullCb = document.createElement('input');
+        fullCb.type='checkbox'; fullCb.id=fullId; fullCb.onchange=()=>{ if(fullCb.checked){ clearLoanFully(currentMemberKey,i); fullCb.disabled=true; } };
+        const fullLbl=document.createElement('label');
+        fullLbl.setAttribute('for', fullId);
+        fullLbl.textContent='Fully Cleared';
+        const intCb = document.createElement('input');
+        intCb.type='checkbox'; intCb.id=intId; intCb.onchange=()=>{ if(intCb.checked){ clearInterestOnlyAndRenew(currentMemberKey,i); intCb.disabled=true; } };
+        const intLbl=document.createElement('label');
+        intLbl.setAttribute('for', intId);
+        intLbl.textContent='Cleared Interest Only (Auto-Renew 30d)';
+        wrap.appendChild(fullCb); wrap.appendChild(fullLbl);
+        wrap.appendChild(intCb);  wrap.appendChild(intLbl);
+        aCell.appendChild(wrap);
+        let paid=document.createElement("button"); paid.textContent="Mark Paid"; paid.className="saveBtn"; paid.onclick=()=>markLoanPaid(currentMemberKey,i);
+        aCell.appendChild(paid);
+      }
+      let del=document.createElement("button"); del.textContent="Delete"; del.className="deleteBtn"; del.onclick=()=>deleteLoan(currentMemberKey,i);
+      aCell.appendChild(del);
+    }
+    let card=document.createElement("div");
+    card.className="loan-card "+(L.status==="Approved"?"green":L.status==="Rejected"?"red":L.status==="Paid"?"blue":"yellow");
+    let diff=Math.ceil((new Date(L.repaymentDate)-new Date())/(1000*60*60*24));
+    card.innerHTML=`<h4>Loan: ${L.principal}</h4>
+                    <p>Status: ${L.status}</p>
+                    <p>Interest Rate: ${(L.interestRate*100).toFixed(0)}%</p>
+                    <p>Interest: ${L.interestAmount} | Total Due: ${L.totalDue}</p>
+                    <p>Approved On: ${L.approvedDate||"-"}</p>
+                    <p>Repayment Date: ${L.repaymentDate||"-"}</p>
+                    <p>Days Remaining: ${isNaN(diff)?'-':(diff>=0?diff:0)}</p>
+                    <p>Defaulted: ${L.defaulted ? 'Yes (Fine: ' + (L.fine || 0) + ')' : 'No'}</p>`;
+    cards.appendChild(card);
+  });
+}
+
+function addLoan(){
+  ensureCurrentMember();
+  if(!currentMemberKey) return alert("Select member!");
+  let amt=document.getElementById("loanAmount").value;
+  let req=document.getElementById("loanRequestDate").value;
+  let rep=document.getElementById("loanRepaymentDate").value;
+  if(!amt||!req||!rep) return alert("Fill all fields!");
+  const principal = Number(amt);
+  const newLoan = {
+    amount: principal,
+    requestDate: req,
+    repaymentDate: rep,
+    status:"Pending",
+    interestRate: DEFAULT_INTEREST_RATE
+  };
+  normalizeLoan(newLoan);
+  members[currentMemberKey].loanRequests.push(newLoan);
+  localStorage.setItem("members",JSON.stringify(members));
+  document.getElementById("loanAmount").value=""; 
+  document.getElementById("loanRequestDate").value=""; 
+  document.getElementById("loanRepaymentDate").value="";
+  showSection("dashboard");
+}
+
+function updateLoan(i,f,v){
+  members[currentMemberKey].loanRequests[i][f]= (f==="amount") ? (Number(v)||0) : v;
+  normalizeLoan(members[currentMemberKey].loanRequests[i]);
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+function approveLoan(k,i){
+  members[k].loanRequests[i].status="Approved";
+  members[k].loanRequests[i].approvedDate=dateToYMD(new Date());
+  normalizeLoan(members[k].loanRequests[i]);
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+function rejectLoan(k,i){
+  members[k].loanRequests[i].status="Rejected";
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+function markLoanPaid(k,i){
+  members[k].loanRequests[i].status="Paid";
+  members[k].loanRequests[i].clearedPrincipal = true;
+  members[k].loanRequests[i].clearedInterest  = true;
+  members[k].loanRequests[i].clearedDate = dateToYMD(new Date());
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+function deleteLoan(k,i){
+  if(confirm("Delete this loan?")){
+    members[k].loanRequests.splice(i,1);
+    localStorage.setItem("members",JSON.stringify(members));
+    refreshUI();
+  }
+}
+
+function clearLoanFully(k,i){
+  const L = members[k].loanRequests[i];
+  L.status = "Paid";
+  L.clearedPrincipal = true;
+  L.clearedInterest  = true;
+  L.clearedDate = dateToYMD(new Date());
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+function clearInterestOnlyAndRenew(k,i){
+  const L = members[k].loanRequests[i];
+  normalizeLoan(L);
+  L.clearedInterest = true;
+  L.status = "Interest Paid";
+  L.interestClearedDate = dateToYMD(new Date());
+  const today = dateToYMD(new Date());
+  const newRepay = addDays(today, 30);
+  const renewed = {
+    amount: L.principal,
+    requestDate: today,
+    repaymentDate: newRepay,
+    status: "Approved",
+    approvedDate: today,
+    interestRate: L.interestRate || DEFAULT_INTEREST_RATE
+  };
+  normalizeLoan(renewed);
+  members[k].loanRequests.push(renewed);
+  localStorage.setItem("members",JSON.stringify(members));
+  refreshUI();
+}
+
+/* ---------- LOGOUT ---------- */
+function logout(){ 
+  localStorage.removeItem("isAdmin"); 
+  localStorage.removeItem("loggedInUser"); 
+  window.location.href="login.html"; 
+}
+
+/* ---------- STATEMENTS ---------- */
+function checkAllDefaults() {
+  const today = new Date();
+  Object.keys(members).forEach(key => {
+    let m = members[key];
+    m.loanRequests.forEach(loan => {
+      normalizeLoan(loan);
+      if ((loan.status === "Approved" || loan.status === "Interest Paid") && !loan.defaulted && loan.repaymentDate) {
+        const graceDate = new Date(loan.graceDate);
+        if (today > graceDate) {
+          loan.defaulted = true;
+          loan.fine = Math.round(loan.totalDue * DEFAULT_FINE_RATE);
+          const defMonth = new Date(loan.repaymentDate).toLocaleString('default', { month: 'long' });
+          if (!m.monthly[defMonth]) m.monthly[defMonth] = {saved:0, fines:0, interest:0};
+          m.monthly[defMonth].fines += loan.fine;
+        }
+      }
+    });
+  });
+  localStorage.setItem("members", JSON.stringify(members));
+}
+
+if (isAdmin) {
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  months.forEach(m => {
+    let opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    document.getElementById("statementMonth").appendChild(opt);
+  });
+}
+
+function getStatementData(month) {
+  let data = [];
+  Object.keys(members).forEach(key => {
+    let m = members[key];
+    let savings = 0, fines = 0, interest = 0, loansPrincipal = 0, loansInterest = 0, loansTotal = 0;
+    if (month === "All") {
+      Object.values(m.monthly).forEach(mon => {
+        savings += mon.saved || 0;
+        fines += mon.fines || 0;
+        interest += mon.interest || 0;
+      });
+      m.loanRequests.forEach(l => {
+        if (l.status === "Approved" || l.status === "Paid" || l.status === "Interest Paid") {
+          let L = normalizeLoan(l);
+          loansPrincipal += L.principal;
+          loansInterest += L.interestAmount;
+          loansTotal += L.totalDue;
+        }
+      });
+    } else {
+      let mon = m.monthly[month];
+      if (mon) {
+        savings = mon.saved || 0;
+        fines = mon.fines || 0;
+        interest = mon.interest || 0;
+      }
+      m.loanRequests.forEach(l => {
+        if (l.approvedDate && new Date(l.approvedDate).toLocaleString('default', { month: 'long' }) === month) {
+          let L = normalizeLoan(l);
+          loansPrincipal += L.principal;
+          loansInterest += L.interestAmount;
+          loansTotal += L.totalDue;
+        }
+      });
+    }
+    data.push({Member: key, Savings: savings, Fines: fines, Interest: interest, 'Loans Principal': loansPrincipal, 'Loans Interest': loansInterest, 'Loans Total': loansTotal});
+  });
+  return data;
+}
+
+function generateStatement() {
+  let month = document.getElementById("statementMonth").value;
+  let data = getStatementData(month);
+  let tableHtml = '<table><thead><tr><th>Member</th><th>Savings</th><th>Fines</th><th>Interest</th><th>Loans Principal</th><th>Loans Interest</th><th>Loans Total</th></tr></thead><tbody>';
+  data.forEach(d => {
+    tableHtml += `<tr><td>${d.Member}</td><td>${d.Savings}</td><td>${d.Fines}</td><td>${d.Interest}</td><td>${d['Loans Principal']}</td><td>${d['Loans Interest']}</td><td>${d['Loans Total']}</td></tr>`;
+  });
+  tableHtml += '</tbody></table>';
+  document.getElementById("statementDiv").innerHTML = tableHtml;
+}
+
+function downloadStatementPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let month = document.getElementById("statementMonth").value;
+  doc.text(`Statement for ${month}`, 10, 10);
+  let columns = ["Member", "Savings", "Fines", "Interest", "Loans Principal", "Loans Interest", "Loans Total"];
+  let rows = [];
+  let data = getStatementData(month);
+  rows = data.map(d => [d.Member, d.Savings, d.Fines, d.Interest, d['Loans Principal'], d['Loans Interest'], d['Loans Total']]);
+  doc.autoTable({ head: [columns], body: rows });
+  doc.save(`statement_${month}.pdf`);
+}
+
+/* ---------- INITIAL ---------- */
+ensureCurrentMember();
+showSection("dashboard");
+</script>

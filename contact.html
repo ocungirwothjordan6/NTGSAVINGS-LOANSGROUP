@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTG Membership Registration</title>
+<style>
+body { font-family:'Segoe UI', sans-serif; background:#f5fff5; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+.form-container { background:white; padding:2rem; border-radius:10px; box-shadow:0 5px 20px rgba(0,0,0,0.1); width:400px; }
+h2 { text-align:center; margin-bottom:1rem; color:#046307; }
+input, textarea { width:90%; margin:0.5rem auto; display:block; padding:0.5rem; border-radius:5px; border:1px solid #ccc; }
+button { background:#046307; color:white; border:none; padding:0.7rem 1.2rem; border-radius:5px; cursor:pointer; font-weight:bold; margin-top:1rem; display:block; margin-left:auto; margin-right:auto; }
+button:hover { background:#034b02; }
+</style>
+</head>
+<body>
+
+<div class="form-container">
+  <h2>NTG Membership Registration</h2>
+  <input type="text" id="fullName" placeholder="Full Name" required>
+  <input type="text" id="phone" placeholder="Phone Number" required>
+  <input type="email" id="email" placeholder="Email Address">
+  <textarea id="message" placeholder="Additional Information (optional)" rows="3"></textarea>
+  <button onclick="submitForm()">Submit Registration</button>
+</div>
+
+<script>
+function submitForm() {
+  const fullName = document.getElementById('fullName').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const message = document.getElementById('message').value.trim();
+
+  if(!fullName || !phone) {
+    alert('❌ Please enter all required fields.');
+    return;
+  }
+
+  const newMember = { fullName, phone, email, message, status: 'Pending' };
+
+  let pendingMembers = JSON.parse(localStorage.getItem('pendingMembers')) || [];
+  pendingMembers.push(newMember);
+  localStorage.setItem('pendingMembers', JSON.stringify(pendingMembers));
+
+  alert('✅ Registration submitted! Admin will review your membership.');
+  window.location.href = 'index.html';
+}
+</script>
+
+</body>
+</html>
