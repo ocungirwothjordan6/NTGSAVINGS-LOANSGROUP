@@ -3,33 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NTG Admin Dashboard</title>
+<title>Admin Dashboard</title>
 <style>
-body{font-family:'Segoe UI',sans-serif; margin:0; background:#f7f9fc;}
-header{padding:1rem 2rem;background:#046307;color:white;display:flex;justify-content:space-between;align-items:center;}
-header h1{margin:0;}
-header button{padding:0.5rem 1rem;border:none;border-radius:5px;background:#e53e3e;color:white;cursor:pointer;}
-header button:hover{background:#c53030;}
-.container{max-width:1200px;margin:2rem auto;background:white;padding:2rem;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-table{width:100%;border-collapse:collapse;}
-th,td{border:1px solid #ccc;padding:0.5rem;text-align:center;}
+body { font-family:'Segoe UI',sans-serif; background:#f5fff5; padding:1rem; color:#2d3748; }
+h2{text-align:center; color:#046307; margin-bottom:1rem;}
+.container{max-width:1000px;margin:auto;background:white;padding:1.5rem;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:2rem;}
+table{width:100%;border-collapse:collapse;margin-bottom:2rem;}
+th,td{border:1px solid #ccc;padding:0.5rem;text-align:center;font-size:0.9rem;}
 th{background:#046307;color:white;}
-button.actionBtn{margin:0 2px;padding:0.3rem 0.6rem;border:none;border-radius:5px;background:#046307;color:white;cursor:pointer;}
-button.actionBtn:hover{background:#034b02;}
+button{padding:0.4rem 0.8rem;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem; margin:0 2px; transition:all 0.2s ease;}
+button:hover{transform:translateY(-2px); box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+button.approveBtn{background:#046307;color:white;}
+button.rejectBtn{background:#e53e3e;color:white;}
+button.addBtn{background:#28a745;color:white; margin-top:0.5rem;}
+input, select{padding:0.6rem;border-radius:6px;border:1px solid #ccc;margin:0.5rem 0;font-size:0.9rem;}
+@media (max-width:768px){table{font-size:0.8rem;} input, select, button{width:100%; margin-bottom:0.5rem;}}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>NTG Admin Dashboard</h1>
-  <button onclick="logout()">Logout</button>
-</header>
+<h2>Admin Dashboard</h2>
 
 <div class="container">
-  <h2>Member Loan Requests</h2>
-  <table id="requestTable">
+  <h3>Add New Member</h3>
+  <input type="text" id="newMemberName" placeholder="Member Name">
+  <button class="addBtn" onclick="addMember()">Add Member</button>
+</div>
+
+<div class="container">
+  <h3>Members</h3>
+  <table id="membersTable">
     <thead>
-      <tr><th>Member</th><th>Amount</th><th>Status</th><th>Requested</th><th>Repayment</th><th>Actions</th></tr>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Monthly Savings</th>
+        <th>Loans</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="container">
+  <h3>Loan Requests</h3>
+  <table id="loanTable">
+    <thead>
+      <tr>
+        <th>Member</th>
+        <th>Amount</th>
+        <th>Requested On</th>
+        <th>Repayment Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -37,68 +65,111 @@ button.actionBtn:hover{background:#034b02;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
-  databaseURL: "https://ntgsavings-loansgroup-default-rtdb.firebaseio.com",
   projectId: "ntgsavings-loansgroup",
-  storageBucket: "ntgsavings-loansgroup.appspot.com",
+  storageBucket: "ntgsavings-loansgroup.firebasestorage.app",
   messagingSenderId: "836958799412",
-  appId: "1:836958799412:web:26540535294f3c9d2f2c61"
+  appId: "1:836958799412:web:26540535294f3c9d2f2c61",
+  measurementId: "G-QMPM1RL98B"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const loggedInUser = localStorage.getItem("loggedInUser");
-if(!loggedInUser || localStorage.getItem("isAdmin")!=="true") window.location.href="login.html";
-
-const requestTableBody = document.querySelector("#requestTable tbody");
-
-// Live update all loan requests
-const membersRef = ref(db, "members");
-onValue(membersRef, snap=>{
-  const members = snap.val()||{};
-  renderRequests(members);
+// --- Admin Authentication ---
+onAuthStateChanged(auth, async (user) => {
+  if(!user) { window.location.href="login.html"; return; }
+  const uid = user.uid;
+  const userDoc = await doc(db,"users",uid).get();
+  if(!userDoc.exists() || userDoc.data().role!=="admin") {
+    alert("Unauthorized access");
+    window.location.href="login.html"; 
+  }
+  loadMembers();
+  loadLoans();
 });
 
-function renderRequests(members) {
-  requestTableBody.innerHTML="";
-  Object.entries(members).forEach(([name, mem])=>{
-    (mem.loanRequests||[]).forEach((loan,i)=>{
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${name}</td>
-        <td>${loan.amount}</td>
-        <td>${loan.status}</td>
-        <td>${loan.dateRequested}</td>
-        <td>${loan.repaymentDate||"-"}</td>
-        <td>
-          ${loan.status==="pending" ? `<button class="actionBtn" onclick="approveLoan('${name}',${i})">Approve</button>
-          <button class="actionBtn" onclick="rejectLoan('${name}',${i})">Reject</button>` : "-"}
-        </td>`;
-      requestTableBody.appendChild(row);
+// --- Logout ---
+window.logout = () => { signOut(auth).then(()=>window.location.href="login.html"); };
+
+// --- Add Member ---
+window.addMember = async () => {
+  const name = document.getElementById("newMemberName").value.trim();
+  if(!name) { alert("Enter member name"); return; }
+  const memberRef = doc(db,"users",name.replace(/\s+/g,"_").toLowerCase());
+  await setDoc(memberRef, {
+    name:name,
+    email:"",
+    role:"member",
+    monthly:{},
+    loans:[]
+  });
+  document.getElementById("newMemberName").value="";
+  alert("Member added successfully!");
+};
+
+// --- Load Members (Realtime) ---
+function loadMembers() {
+  const membersTableBody = document.querySelector("#membersTable tbody");
+  const usersCol = collection(db,"users");
+  onSnapshot(usersCol, (snapshot)=>{
+    membersTableBody.innerHTML="";
+    snapshot.forEach(docSnap=>{
+      const m = docSnap.data();
+      if(m.role==="member"){
+        let tr = document.createElement("tr");
+        tr.innerHTML=`
+          <td>${m.name}</td>
+          <td>${m.email||"-"}</td>
+          <td>${m.monthly ? Object.values(m.monthly).reduce((a,b)=>a+b.saved||0,0) : 0}</td>
+          <td>${m.loans ? m.loans.length : 0}</td>
+          <td>-</td>
+        `;
+        membersTableBody.appendChild(tr);
+      }
     });
   });
 }
 
-// Approve/reject actions
-function approveLoan(name,index){
-  const today = new Date();
-  const repayment = new Date(today);
-  repayment.setDate(repayment.getDate()+30);
-  update(ref(db, `members/${name}/loanRequests/${index}`), {status:"approved", repaymentDate: repayment.toLocaleDateString()});
+// --- Load Loan Requests (Realtime) ---
+function loadLoans() {
+  const loanTableBody = document.querySelector("#loanTable tbody");
+  const loansCol = collection(db,"loans");
+  onSnapshot(loansCol, (snapshot)=>{
+    loanTableBody.innerHTML="";
+    snapshot.forEach(docSnap=>{
+      const l = docSnap.data();
+      let tr = document.createElement("tr");
+      tr.innerHTML=`
+        <td>${l.memberName}</td>
+        <td>${l.amount}</td>
+        <td>${l.dateRequested}</td>
+        <td>${l.repaymentDate||"-"}</td>
+        <td>${l.status}</td>
+        <td>${l.status==="pending"?`<button class="approveBtn" onclick="approveLoan('${docSnap.id}')">Approve</button>
+          <button class="rejectBtn" onclick="rejectLoan('${docSnap.id}')">Reject</button>`:"-"}</td>
+      `;
+      loanTableBody.appendChild(tr);
+    });
+  });
 }
 
-function rejectLoan(name,index){
-  update(ref(db, `members/${name}/loanRequests/${index}`), {status:"rejected"});
-}
-
-// Logout
-function logout() { localStorage.removeItem("loggedInUser"); localStorage.removeItem("isAdmin"); window.location.href="login.html"; }
+// --- Approve / Reject Loans ---
+window.approveLoan = async (loanId) => {
+  await updateDoc(doc(db,"loans",loanId), {
+    status:"approved",
+    repaymentDate:new Date(new Date().setDate(new Date().getDate()+30)).toLocaleDateString()
+  });
+};
+window.rejectLoan = async (loanId) => {
+  await updateDoc(doc(db,"loans",loanId), {status:"rejected"});
+};
 </script>
-
 </body>
 </html>
