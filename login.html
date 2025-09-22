@@ -24,9 +24,11 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
+// --- Firebase configuration ---
 const firebaseConfig = {
-   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
+  apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
   projectId: "ntgsavings-loansgroup",
   storageBucket: "ntgsavings-loansgroup.firebasestorage.app",
@@ -37,23 +39,33 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-function login() {
+async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
-  signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      if(user.email === "admin@ntg.com") {
-        window.location.href = "admin.html";
-      } else {
-        window.location.href = "dashboard.html";
-      }
-    })
-    .catch(error => alert("❌ Login failed: " + error.message));
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // --- Check role from Firestore ---
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const role = userDoc.exists() ? userDoc.data().role : null;
+
+    if (email === "admin@ntg.com" && password === "Admin@ntg") {
+      window.location.href = "admin.html";
+    } else if (role === "member") {
+      window.location.href = "dashboard.html";
+    } else {
+      alert("❌ Unauthorized user or role not assigned!");
+    }
+  } catch (error) {
+    alert("❌ Login failed: " + error.message);
+  }
 }
 window.login = login;
 </script>
+
 </body>
 </html>
