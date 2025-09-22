@@ -27,17 +27,39 @@ button:hover{background:#034b02;}
   </table>
 </div>
 
-<script>
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
+  authDomain: "ntgsavings-loansgroup.firebaseapp.com",
+  projectId: "ntgsavings-loansgroup",
+  storageBucket: "ntgsavings-loansgroup.appspot.com",
+  messagingSenderId: "836958799412",
+  appId: "1:836958799412:web:26540535294f3c9d2f2c61",
+  measurementId: "G-QMPM1RL98B"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- Admin Auth Check ---
 const adminUser = localStorage.getItem("loggedInUser");
 if(!adminUser || localStorage.getItem("role")!=="admin") window.location.href="index.html";
 
-let members = JSON.parse(localStorage.getItem("members"));
+// Reference to members collection
+const membersCol = collection(db, "members");
 
-function renderRequests(){
+// --- Render Loan Requests in Real-Time ---
+function renderRequests(membersData){
   let html="";
-  for(const name in members){
-    const mem = members[name];
-    mem.loanRequests.forEach((l,i)=>{
+  for(const name in membersData){
+    const mem = membersData[name];
+    mem.loanRequests?.forEach((l,i)=>{
       html+=`<tr>
         <td>${name}</td>
         <td>${l.amount}</td>
@@ -45,8 +67,8 @@ function renderRequests(){
         <td>${l.dateRequested}</td>
         <td>${l.repaymentDate||"-"}</td>
         <td>
-          ${l.status==="pending"?`<button onclick="approveLoan('${name}',${i})">Approve</button>
-          <button onclick="rejectLoan('${name}',${i})">Reject</button>`:"-"}
+          ${l.status==="pending"?`<button onclick="approveLoan('${name}','${i}')">Approve</button>
+          <button onclick="rejectLoan('${name}','${i}')">Reject</button>`:"-"}
         </td>
       </tr>`;
     });
@@ -56,28 +78,38 @@ function renderRequests(){
   </tr>`+html;
 }
 
-function approveLoan(memberName,index){
+// --- Listen to Live Updates ---
+onSnapshot(membersCol, snapshot => {
+  let membersData = {};
+  snapshot.forEach(docSnap => {
+    membersData[docSnap.id] = docSnap.data();
+  });
+  renderRequests(membersData);
+});
+
+// --- Approve/Reject Functions ---
+window.approveLoan = async function(memberName,index){
+  const docRef = doc(db, "members", memberName);
+  const docSnap = await docRef.get();
+  const mem = (await docRef.get()).data();
+
   const today = new Date();
-  let mem = members[memberName];
-  mem.loanRequests[index].status="approved";
+  mem.loanRequests[index].status = "approved";
   mem.loanRequests[index].repaymentDate = new Date(today.setDate(today.getDate()+30)).toLocaleDateString();
-  mem.numberOfLoans +=1;
-  members[memberName]=mem;
-  localStorage.setItem("members",JSON.stringify(members));
-  renderRequests();
+  mem.numberOfLoans = (mem.numberOfLoans || 0) + 1;
+
+  await setDoc(docRef, mem);
   alert("Loan approved and repayment date set!");
 }
 
-function rejectLoan(memberName,index){
-  let mem = members[memberName];
-  mem.loanRequests[index].status="rejected";
-  members[memberName]=mem;
-  localStorage.setItem("members",JSON.stringify(members));
-  renderRequests();
+window.rejectLoan = async function(memberName,index){
+  const docRef = doc(db, "members", memberName);
+  const mem = (await docRef.get()).data();
+  mem.loanRequests[index].status = "rejected";
+  await setDoc(docRef, mem);
   alert("Loan rejected!");
 }
-
-renderRequests();
 </script>
+
 </body>
 </html>
