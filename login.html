@@ -5,87 +5,97 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NTG Login</title>
 <style>
-body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5fff5; }
-.login-box { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-input { display: block; width: 90%; margin: 1rem auto; padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; }
-button { background: #046307; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; }
-button:hover { background: #034b02; }
-.toggle-pass { cursor: pointer; color: #046307; font-size: 0.9rem; margin-bottom: 1rem; display: block; }
-.forgot-pass { font-size: 0.9rem; margin-top: 0.5rem; display: block; color: #d32f2f; text-decoration: underline; cursor: pointer; }
+  body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5fff5; }
+  .login-box { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+  input { display: block; width: 90%; margin: 1rem auto; padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; }
+  button { background: #046307; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; }
+  button:hover { background: #034b02; }
+  .toggle-pass { cursor: pointer; color: #046307; font-size: 0.9rem; margin-bottom: 1rem; display: block; }
+  .forgot-pass { font-size: 0.9rem; margin-top: 0.5rem; display: block; color: #d32f2f; text-decoration: underline; cursor: pointer; }
 </style>
 </head>
 <body>
+  <div class="login-box">
+    <h2>NTG Member Login</h2>
+    <input type="text" id="username" placeholder="Username" aria-label="Username">
+    <input type="password" id="password" placeholder="Password" aria-label="Password">
+    <span class="toggle-pass" onclick="togglePassword()">Show Password</span>
+    <button onclick="login()">Submit</button>
+    <span class="forgot-pass" onclick="forgotPassword()">Forgot Password?</span>
+  </div>
 
-<div class="login-box">
-  <h2>NTG Member Login</h2>
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-  <span class="toggle-pass" onclick="togglePassword()">Show Password</span>
-  <button onclick="login()">Submit</button>
-  <span class="forgot-pass" onclick="forgotPassword()">Forgot Password?</span>
-</div>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
+      authDomain: "ntgsavings-loansgroup.firebaseapp.com",
+      projectId: "ntgsavings-loansgroup",
+      storageBucket: "ntgsavings-loansgroup.appspot.com",
+      messagingSenderId: "836958799412",
+      appId: "1:836958799412:web:26540535294f3c9d2f2c61",
+      measurementId: "G-QMPM1RL98B"
+    };
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
-  authDomain: "ntgsavings-loansgroup.firebaseapp.com",
-  databaseURL: "https://ntgsavings-loansgroup-default-rtdb.firebaseio.com",
-  projectId: "ntgsavings-loansgroup",
-  storageBucket: "ntgsavings-loansgroup.appspot.com",
-  messagingSenderId: "836958799412",
-  appId: "1:836958799412:web:26540535294f3c9d2f2c61"
-};
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-function togglePassword() {
-  const p = document.getElementById("password");
-  const t = document.querySelector(".toggle-pass");
-  if (p.type === "password") { p.type="text"; t.textContent="Hide Password"; }
-  else { p.type="password"; t.textContent="Show Password"; }
-}
-
-function forgotPassword() {
-  alert("Please contact the admin to reset your password.");
-}
-
-async function login() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value;
-
-  // Admin login
-  if(username === "Admin" && password === "Admin@ntg") {
-    localStorage.setItem("loggedInUser", "Admin");
-    localStorage.setItem("isAdmin", "true");
-    window.location.href = "admin.html";
-    return;
-  }
-
-  try {
-    const snap = await get(ref(db, 'members/' + username));
-    if(snap.exists()) {
-      const member = snap.val();
-      if(member.password === password) {
-        localStorage.setItem("loggedInUser", username);
-        localStorage.removeItem("isAdmin");
-        window.location.href = "dashboard.html";
+    // Show/Hide password
+    function togglePassword() {
+      const passInput = document.getElementById("password");
+      const toggleText = document.querySelector(".toggle-pass");
+      if (passInput.type === "password") {
+        passInput.type = "text";
+        toggleText.textContent = "Hide Password";
       } else {
-        alert("❌ Wrong password!");
+        passInput.type = "password";
+        toggleText.textContent = "Show Password";
       }
-    } else {
-      alert("❌ User not found!");
     }
-  } catch(err) {
-    console.error(err);
-    alert("❌ Error connecting to database.");
-  }
-}
-</script>
 
+    function forgotPassword() {
+      alert("Please contact the admin to reset your password.");
+    }
+
+    async function login() {
+      const usernameInput = document.getElementById("username").value.trim();
+      const passwordInput = document.getElementById("password").value;
+
+      if (!usernameInput || !passwordInput) {
+        alert("Enter username and password!");
+        return;
+      }
+
+      // Admin login
+      if (usernameInput === "Admin" && passwordInput === "Admin@ntg") {
+        localStorage.setItem("loggedInUser", "Admin");
+        localStorage.setItem("isAdmin", "true");
+        window.location.href = "admin.html";
+        return;
+      }
+
+      try {
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, `members/${usernameInput}`));
+        if (snapshot.exists()) {
+          const member = snapshot.val();
+          if (member.password === passwordInput) {
+            localStorage.setItem("loggedInUser", usernameInput);
+            localStorage.removeItem("isAdmin");
+            window.location.href = "dashboard.html";
+          } else {
+            alert("❌ Incorrect password!");
+          }
+        } else {
+          alert("❌ Username does not exist!");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("❌ Login failed. Check your internet connection.");
+      }
+    }
+  </script>
 </body>
 </html>
