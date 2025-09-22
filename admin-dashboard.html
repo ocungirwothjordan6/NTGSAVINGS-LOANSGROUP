@@ -5,96 +5,171 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
 <style>
-body{font-family:'Segoe UI',sans-serif; background:#f5fff5; padding:1rem;}
-h2{text-align:center; color:#046307;}
-.container{max-width:1000px;margin:auto;}
+body { font-family:'Segoe UI',sans-serif; background:#f5fff5; padding:1rem; color:#2d3748; }
+h2{text-align:center; color:#046307; margin-bottom:1rem;}
+.container{max-width:1000px;margin:auto;background:white;padding:1.5rem;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08); margin-bottom:2rem;}
 table{width:100%;border-collapse:collapse;margin-bottom:2rem;}
-th,td{border:1px solid #ccc;padding:0.5rem;text-align:center;}
+th,td{border:1px solid #ccc;padding:0.5rem;text-align:center;font-size:0.9rem;}
 th{background:#046307;color:white;}
-button{padding:0.3rem 0.6rem;background:#046307;color:white;border:none;border-radius:5px;cursor:pointer;}
-button:hover{background:#034b02;}
+button{padding:0.4rem 0.8rem;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem; margin:0 2px; transition:all 0.2s ease;}
+button:hover{transform:translateY(-2px); box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+button.approveBtn{background:#046307;color:white;}
+button.rejectBtn{background:#e53e3e;color:white;}
+button.addBtn{background:#28a745;color:white; margin-top:0.5rem;}
+input, select{padding:0.6rem;border-radius:6px;border:1px solid #ccc;margin:0.5rem 0;font-size:0.9rem;}
+@media (max-width:768px){table{font-size:0.8rem;} input, select, button{width:100%; margin-bottom:0.5rem;}}
 </style>
 </head>
 <body>
+
 <h2>Admin Dashboard</h2>
+
 <div class="container">
-  <h3>Member Loan Requests</h3>
-  <table id="requestTable">
-    <tr>
-      <th>Member</th><th>Amount</th><th>Status</th><th>Requested On</th><th>Repayment Date</th><th>Actions</th>
-    </tr>
+  <h3>Add New Member</h3>
+  <input type="text" id="newMemberName" placeholder="Member Name">
+  <button class="addBtn" onclick="addMember()">Add Member</button>
+</div>
+
+<div class="container">
+  <h3>Members</h3>
+  <table id="membersTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Monthly Savings</th>
+        <th>Loans</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="container">
+  <h3>Loan Requests</h3>
+  <table id="loanTable">
+    <thead>
+      <tr>
+        <th>Member</th>
+        <th>Amount</th>
+        <th>Requested On</th>
+        <th>Repayment Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
   </table>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
   projectId: "ntgsavings-loansgroup",
-  storageBucket: "ntgsavings-loansgroup.appspot.com",
+  storageBucket: "ntgsavings-loansgroup.firebasestorage.app",
   messagingSenderId: "836958799412",
   appId: "1:836958799412:web:26540535294f3c9d2f2c61",
   measurementId: "G-QMPM1RL98B"
 };
+
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const loggedInUser = localStorage.getItem("loggedInUser");
-if(!loggedInUser || loggedInUser!=="Admin"){ window.location.href="login.html"; }
+// --- Admin Authentication ---
+onAuthStateChanged(auth, async (user) => {
+  if(!user) { window.location.href="login.html"; return; }
+  const uid = user.uid;
+  const userDoc = await doc(db,"users",uid).get();
+  if(!userDoc.exists() || userDoc.data().role!=="admin") {
+    alert("Unauthorized access");
+    window.location.href="login.html"; 
+  }
+  loadMembers();
+  loadLoans();
+});
 
-const membersRef = ref(db, "members");
+// --- Logout ---
+window.logout = () => { signOut(auth).then(()=>window.location.href="login.html"); };
 
-function renderRequests(members){
-  const table = document.getElementById("requestTable");
-  table.innerHTML=`<tr>
-    <th>Member</th><th>Amount</th><th>Status</th><th>Requested On</th><th>Repayment Date</th><th>Actions</th>
-  </tr>`;
-  for(const username in members){
-    const mem = members[username];
-    mem.loanRequests.forEach((loan,index)=>{
-      const row = table.insertRow();
-      row.insertCell(0).textContent = username;
-      row.insertCell(1).textContent = loan.amount;
-      row.insertCell(2).textContent = loan.status;
-      row.insertCell(3).textContent = loan.requestDate;
-      row.insertCell(4).textContent = loan.repaymentDate||"-";
-      const actionsCell = row.insertCell(5);
-      if(loan.status==="pending"){
-        const approveBtn = document.createElement("button");
-        approveBtn.textContent="Approve";
-        approveBtn.onclick = ()=>approveLoan(username,index);
-        const rejectBtn = document.createElement("button");
-        rejectBtn.textContent="Reject";
-        rejectBtn.onclick = ()=>rejectLoan(username,index);
-        actionsCell.appendChild(approveBtn);
-        actionsCell.appendChild(rejectBtn);
-      } else {
-        actionsCell.textContent="-";
+// --- Add Member ---
+window.addMember = async () => {
+  const name = document.getElementById("newMemberName").value.trim();
+  if(!name) { alert("Enter member name"); return; }
+  const memberRef = doc(db,"users",name.replace(/\s+/g,"_").toLowerCase());
+  await setDoc(memberRef, {
+    name:name,
+    email:"",
+    role:"member",
+    monthly:{},
+    loans:[]
+  });
+  document.getElementById("newMemberName").value="";
+  alert("Member added successfully!");
+};
+
+// --- Load Members (Realtime) ---
+function loadMembers() {
+  const membersTableBody = document.querySelector("#membersTable tbody");
+  const usersCol = collection(db,"users");
+  onSnapshot(usersCol, (snapshot)=>{
+    membersTableBody.innerHTML="";
+    snapshot.forEach(docSnap=>{
+      const m = docSnap.data();
+      if(m.role==="member"){
+        let tr = document.createElement("tr");
+        tr.innerHTML=`
+          <td>${m.name}</td>
+          <td>${m.email||"-"}</td>
+          <td>${m.monthly ? Object.values(m.monthly).reduce((a,b)=>a+b.saved||0,0) : 0}</td>
+          <td>${m.loans ? m.loans.length : 0}</td>
+          <td>-</td>
+        `;
+        membersTableBody.appendChild(tr);
       }
     });
-  }
+  });
 }
 
-function approveLoan(username,index){
-  const today = new Date();
-  const repayment = new Date(today.setDate(today.getDate()+30)).toISOString().split("T")[0];
-  const loanRef = ref(db, `members/${username}/loanRequests/${index}`);
-  update(loanRef, { status:"Approved", repaymentDate: repayment });
+// --- Load Loan Requests (Realtime) ---
+function loadLoans() {
+  const loanTableBody = document.querySelector("#loanTable tbody");
+  const loansCol = collection(db,"loans");
+  onSnapshot(loansCol, (snapshot)=>{
+    loanTableBody.innerHTML="";
+    snapshot.forEach(docSnap=>{
+      const l = docSnap.data();
+      let tr = document.createElement("tr");
+      tr.innerHTML=`
+        <td>${l.memberName}</td>
+        <td>${l.amount}</td>
+        <td>${l.dateRequested}</td>
+        <td>${l.repaymentDate||"-"}</td>
+        <td>${l.status}</td>
+        <td>${l.status==="pending"?`<button class="approveBtn" onclick="approveLoan('${docSnap.id}')">Approve</button>
+          <button class="rejectBtn" onclick="rejectLoan('${docSnap.id}')">Reject</button>`:"-"}</td>
+      `;
+      loanTableBody.appendChild(tr);
+    });
+  });
 }
 
-function rejectLoan(username,index){
-  const loanRef = ref(db, `members/${username}/loanRequests/${index}`);
-  update(loanRef, { status:"Rejected" });
-}
-
-// Real-time listener for all members
-onValue(membersRef, (snapshot)=>{
-  const members = snapshot.val();
-  renderRequests(members);
-});
+// --- Approve / Reject Loans ---
+window.approveLoan = async (loanId) => {
+  await updateDoc(doc(db,"loans",loanId), {
+    status:"approved",
+    repaymentDate:new Date(new Date().setDate(new Date().getDate()+30)).toLocaleDateString()
+  });
+};
+window.rejectLoan = async (loanId) => {
+  await updateDoc(doc(db,"loans",loanId), {status:"rejected"});
+};
 </script>
 </body>
 </html>
