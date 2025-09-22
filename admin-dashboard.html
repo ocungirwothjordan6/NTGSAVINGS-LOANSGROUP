@@ -16,7 +16,6 @@ button:hover{background:#034b02;}
 </style>
 </head>
 <body>
-
 <h2>Admin Dashboard</h2>
 <div class="container">
   <h3>Member Loan Requests</h3>
@@ -27,12 +26,10 @@ button:hover{background:#034b02;}
   </table>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
-// --- Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
@@ -42,74 +39,62 @@ const firebaseConfig = {
   appId: "1:836958799412:web:26540535294f3c9d2f2c61",
   measurementId: "G-QMPM1RL98B"
 };
-
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getDatabase(app);
 
-// --- Admin Auth Check ---
-const adminUser = localStorage.getItem("loggedInUser");
-if(!adminUser || localStorage.getItem("role")!=="admin") window.location.href="index.html";
+const loggedInUser = localStorage.getItem("loggedInUser");
+if(!loggedInUser || loggedInUser!=="Admin"){ window.location.href="login.html"; }
 
-// Reference to members collection
-const membersCol = collection(db, "members");
+const membersRef = ref(db, "members");
 
-// --- Render Loan Requests in Real-Time ---
-function renderRequests(membersData){
-  let html="";
-  for(const name in membersData){
-    const mem = membersData[name];
-    mem.loanRequests?.forEach((l,i)=>{
-      html+=`<tr>
-        <td>${name}</td>
-        <td>${l.amount}</td>
-        <td>${l.status}</td>
-        <td>${l.dateRequested}</td>
-        <td>${l.repaymentDate||"-"}</td>
-        <td>
-          ${l.status==="pending"?`<button onclick="approveLoan('${name}','${i}')">Approve</button>
-          <button onclick="rejectLoan('${name}','${i}')">Reject</button>`:"-"}
-        </td>
-      </tr>`;
+function renderRequests(members){
+  const table = document.getElementById("requestTable");
+  table.innerHTML=`<tr>
+    <th>Member</th><th>Amount</th><th>Status</th><th>Requested On</th><th>Repayment Date</th><th>Actions</th>
+  </tr>`;
+  for(const username in members){
+    const mem = members[username];
+    mem.loanRequests.forEach((loan,index)=>{
+      const row = table.insertRow();
+      row.insertCell(0).textContent = username;
+      row.insertCell(1).textContent = loan.amount;
+      row.insertCell(2).textContent = loan.status;
+      row.insertCell(3).textContent = loan.requestDate;
+      row.insertCell(4).textContent = loan.repaymentDate||"-";
+      const actionsCell = row.insertCell(5);
+      if(loan.status==="pending"){
+        const approveBtn = document.createElement("button");
+        approveBtn.textContent="Approve";
+        approveBtn.onclick = ()=>approveLoan(username,index);
+        const rejectBtn = document.createElement("button");
+        rejectBtn.textContent="Reject";
+        rejectBtn.onclick = ()=>rejectLoan(username,index);
+        actionsCell.appendChild(approveBtn);
+        actionsCell.appendChild(rejectBtn);
+      } else {
+        actionsCell.textContent="-";
+      }
     });
   }
-  document.getElementById("requestTable").innerHTML=`<tr>
-    <th>Member</th><th>Amount</th><th>Status</th><th>Requested On</th><th>Repayment Date</th><th>Actions</th>
-  </tr>`+html;
 }
 
-// --- Listen to Live Updates ---
-onSnapshot(membersCol, snapshot => {
-  let membersData = {};
-  snapshot.forEach(docSnap => {
-    membersData[docSnap.id] = docSnap.data();
-  });
-  renderRequests(membersData);
-});
-
-// --- Approve/Reject Functions ---
-window.approveLoan = async function(memberName,index){
-  const docRef = doc(db, "members", memberName);
-  const docSnap = await docRef.get();
-  const mem = (await docRef.get()).data();
-
+function approveLoan(username,index){
   const today = new Date();
-  mem.loanRequests[index].status = "approved";
-  mem.loanRequests[index].repaymentDate = new Date(today.setDate(today.getDate()+30)).toLocaleDateString();
-  mem.numberOfLoans = (mem.numberOfLoans || 0) + 1;
-
-  await setDoc(docRef, mem);
-  alert("Loan approved and repayment date set!");
+  const repayment = new Date(today.setDate(today.getDate()+30)).toISOString().split("T")[0];
+  const loanRef = ref(db, `members/${username}/loanRequests/${index}`);
+  update(loanRef, { status:"Approved", repaymentDate: repayment });
 }
 
-window.rejectLoan = async function(memberName,index){
-  const docRef = doc(db, "members", memberName);
-  const mem = (await docRef.get()).data();
-  mem.loanRequests[index].status = "rejected";
-  await setDoc(docRef, mem);
-  alert("Loan rejected!");
+function rejectLoan(username,index){
+  const loanRef = ref(db, `members/${username}/loanRequests/${index}`);
+  update(loanRef, { status:"Rejected" });
 }
+
+// Real-time listener for all members
+onValue(membersRef, (snapshot)=>{
+  const members = snapshot.val();
+  renderRequests(members);
+});
 </script>
-
 </body>
 </html>
