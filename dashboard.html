@@ -5,61 +5,210 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NTG Dashboard</title>
 <style>
-/* --- Styles similar to your previous dashboard --- */
-body { font-family: 'Inter', sans-serif; background: #f7f9fc; color: #2d3748; }
-header { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-header h1 { margin:0; font-size:1.5rem; font-weight:600; }
-header .nav-container { display:flex; gap:0.75rem; }
-button { border:none; padding:0.75rem 1.5rem; border-radius:8px; cursor:pointer; font-size:0.9rem; font-weight:500; transition:all 0.3s ease; }
-.container { max-width:1280px; margin:2rem auto; background:white; padding:2rem; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); overflow-x:auto; }
-h2 { margin:0 0 1.5rem; font-size:1.25rem; font-weight:600; }
-input, select { padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem; width:100%; max-width:350px; }
-table { width:100%; border-collapse:collapse; margin-bottom:1.5rem; min-width:600px; }
-th, td { border:1px solid #e2e8f0; padding:0.75rem; text-align:center; }
-tr:nth-child(even){background:#f7fafc;}
-tr:hover{background:#edf2f7;}
-button.editBtn, button.saveBtn, button.approveBtn, button.rejectBtn { padding:0.5rem 1rem; margin:0 3px; border-radius:6px; font-size:0.85rem; }
-button.editBtn { background:#3182ce;color:white; } 
-button.saveBtn { background:#28a745;color:white; } 
-button.approveBtn { background:#046307;color:white; } 
-button.rejectBtn { background:#e53e3e;color:white; }
-.loan-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:1.5rem; margin-bottom:2rem; }
-.loan-card { padding:1.5rem; border-radius:10px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1); transition:transform 0.3s ease,box-shadow 0.3s ease; }
-.loan-card.green { background:#28a745; } 
-.loan-card.yellow { background:#f6e05e;color:#1a202c; } 
-.loan-card.red { background:#e53e3e; }
+/* --- Common Styles --- */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  background: #f7f9fc;
+  color: #2d3748;
+}
+header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+header h1 { margin: 0; font-size: 1.5rem; font-weight: 600; }
+header .nav-container { display: flex; align-items: center; gap: 0.75rem; }
+button {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.container {
+  max-width: 1280px;
+  margin: 2rem auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow-x: auto;
+}
+h2 { margin: 0 0 1.5rem; font-size: 1.25rem; font-weight: 600; color: #1a202c; }
+input, select {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 350px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: #046307;
+  box-shadow: 0 0 0 3px rgba(4, 99, 7, 0.1);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  min-width: 600px;
+}
+th, td {
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+tr:nth-child(even) { background: #f7fafc; }
+tr:hover { background: #edf2f7; }
+button.editBtn, button.saveBtn, button.approveBtn, button.rejectBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin: 0 3px;
+  transition: all 0.2s ease;
+}
+button.editBtn { background: #3182ce; color: white; }
+button.saveBtn { background: #28a745; color: white; }
+button.approveBtn { background: #046307; color: white; }
+button.rejectBtn { background: #e53e3e; color: white; }
+button.editBtn:hover, button.saveBtn:hover, button.approveBtn:hover, button.rejectBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+.loan-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.loan-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.loan-card.green { background: #28a745; }
+.loan-card.yellow { background: #f6e05e; color: #1a202c; }
+.loan-card.red { background: #e53e3e; }
+.loan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.loan-card h4 { margin: 0 0 0.75rem; font-size: 1.1rem; font-weight: 600; }
+.loan-card p { margin: 0 0 0.5rem; font-size: 0.9rem; }
+@media (max-width: 768px) {
+  header { flex-direction: column; align-items: flex-start; padding: 1rem; }
+  header .nav-container { flex-wrap: wrap; justify-content: center; }
+  header button { margin: 0.5rem; }
+  .container { margin: 1rem; padding: 1rem; }
+  table { min-width: 100%; font-size: 0.85rem; }
+  .loan-card { flex: 1 1 100%; }
+}
+/* --- Role-specific styles --- */
+body.admin { background: #f7f9fc; }
+body.member { background: #edf2f7; }
+header.admin {
+  background: linear-gradient(90deg, #046307 0%, #05710a 100%);
+  color: white;
+}
+header.member {
+  background: linear-gradient(90deg, #1e90ff 0%, #4299e1 100%);
+  color: white;
+}
+header.admin button.navBtn { background: #034b02; color: white; position: relative; overflow: hidden; }
+header.member button.navBtn { background: #2b6cb0; color: white; position: relative; overflow: hidden; }
+header button.navBtn.active { box-shadow: 0 0 0 3px rgba(5, 113, 10, 0.3); }
+header button.logoutBtn { background: #e53e3e; color: white; }
+header button.logoutBtn:hover { background: #c53030; transform: translateY(-2px); }
+h2.admin { color: #046307; }
+h2.member { color: #2b6cb0; }
+th.admin { background: #046307; color: white; }
+th.member { background: #2b6cb0; color: white; }
 </style>
 </head>
 <body>
-
 <header id="header">
-  <h1 id="headerTitle">NTG Dashboard</h1>
+  <h1 id="headerTitle"></h1>
   <div class="nav-container">
     <button class="navBtn active" onclick="showSection('dashboard')" id="dashboardNav">Dashboard</button>
+    <button class="navBtn" onclick="showSection('members')" id="membersNav" style="display:none;">Members</button>
+    <button class="navBtn" onclick="showSection('addMember')" id="addMemberNav" style="display:none;">Add Member</button>
+    <button class="navBtn" onclick="showSection('addLoan')" id="addLoanNav" style="display:none;">Add Loan</button>
+    <button class="navBtn" onclick="showSection('statements')" id="statementsNav">Statements</button>
     <button class="logoutBtn" onclick="logout()">Logout</button>
   </div>
 </header>
 
+<div class="container" id="adminSection" style="display:none;">
+  <h2 class="admin">Add New Member</h2>
+  <div style="margin-bottom:1.5rem;">
+    <input type="text" id="newMemberName" placeholder="New Member Name">
+    <button onclick="addMember()" style="background:#28a745; color:white;">Add Member</button>
+  </div>
+  <h2 class="admin">Select Member</h2>
+  <select id="memberSelect"></select>
+</div>
+
+<div class="container" id="statementsSection" style="display:none;">
+  <h2 class="admin member">Monthly Statements</h2>
+  <select id="statementMonth">
+    <option value="All">All Months</option>
+    <option value="January">January</option>
+    <option value="February">February</option>
+    <option value="March">March</option>
+    <option value="April">April</option>
+    <option value="May">May</option>
+    <option value="June">June</option>
+    <option value="July">July</option>
+    <option value="August">August</option>
+    <option value="September">September</option>
+    <option value="October">October</option>
+    <option value="November">November</option>
+    <option value="December">December</option>
+  </select>
+  <button onclick="generateStatement()">View Statement</button>
+  <div id="statementDiv" style="overflow-x:auto; margin-top:1.5rem;"></div>
+  <button onclick="downloadStatementPDF()" style="margin-top:1rem; background:#28a745; color:white;">Download PDF</button>
+</div>
+
 <div class="container" id="dashboardSection">
   <h2 id="welcomeTitle"></h2>
-  <h2>Monthly Savings</h2>
+  <h2 id="monthlyTitle">Monthly Savings</h2>
   <table id="monthlyTable">
     <thead>
       <tr>
-        <th>Month</th><th>Saved</th><th>Fines</th><th>Interest Gained</th>
+        <th>Month</th>
+        <th>Saved</th>
+        <th>Fines</th>
+        <th>Interest Gained</th>
+        <th id="monthlyActionsHeader">Actions</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
-
-  <h2>Loans</h2>
+  <h2 id="loanSummaryTitle">Loans</h2>
   <div class="loan-cards" id="loanCards"></div>
-
-  <h2>Loan Requests</h2>
+  <h2 id="loanTableTitle">Loan Requests</h2>
   <table id="loanTable">
     <thead>
       <tr>
-        <th>Amount</th><th>Requested On</th><th>Approved On</th><th>Repayment Date</th><th>Status</th><th>Days Remaining</th>
+        <th>Amount</th>
+        <th>Requested On</th>
+        <th>Approved On</th>
+        <th>Repayment Date</th>
+        <th>Status</th>
+        <th>Duration (days)</th>
+        <th id="loanActionsHeader">Actions</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -67,88 +216,134 @@ button.rejectBtn { background:#e53e3e;color:white; }
 </div>
 
 <script type="module">
+// --- Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
-import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import jsPDF from 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
   projectId: "ntgsavings-loansgroup",
-  storageBucket: "ntgsavings-loansgroup.appspot.com",
+  storageBucket: "ntgsavings-loansgroup.firebasestorage.app",
   messagingSenderId: "836958799412",
   appId: "1:836958799412:web:26540535294f3c9d2f2c61",
   measurementId: "G-QMPM1RL98B"
 };
+
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const loggedInUser = localStorage.getItem("loggedInUser");
-if(!loggedInUser){ window.location.href="login.html"; }
+// --- User State ---
+onAuthStateChanged(auth, async (user) => {
+  if(!user) { window.location.href="login.html"; return; }
+  const uid = user.uid;
+  const userDoc = await getDoc(doc(db,"users",uid));
+  const role = userDoc.exists() ? userDoc.data().role : "member";
 
-document.getElementById("welcomeTitle").textContent = "Welcome, " + loggedInUser;
+  document.body.classList.add(role);
+  document.getElementById('headerTitle').textContent = role === "admin" ? "Admin Dashboard" : `Welcome, ${userDoc.data().name}`;
+  
+  if(role === "admin") {
+    document.getElementById('adminSection').style.display = "block";
+    document.getElementById('membersNav').style.display = "inline-block";
+    document.getElementById('addMemberNav').style.display = "inline-block";
+    document.getElementById('addLoanNav').style.display = "inline-block";
+  }
 
-const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
-const monthlyTableBody = document.querySelector("#monthlyTable tbody");
-const loanCardsDiv = document.getElementById("loanCards");
-const loanTableBody = document.querySelector("#loanTable tbody");
-
-const userRef = ref(db, `members/${loggedInUser}`);
-
-// Real-time listener
-onValue(userRef, (snapshot)=>{
-  const data = snapshot.val();
-  renderMonthly(data);
-  renderLoans(data);
+  loadLoans(uid, role);
+  loadMonthly(uid, role);
 });
 
-// Render monthly savings table
-function renderMonthly(member){
-  monthlyTableBody.innerHTML="";
-  months.forEach(m=>{
-    const row = monthlyTableBody.insertRow();
-    row.insertCell(0).textContent = m;
-    row.insertCell(1).textContent = member.monthly[m]?.saved||0;
-    row.insertCell(2).textContent = member.monthly[m]?.fines||0;
-    row.insertCell(3).textContent = member.monthly[m]?.interest||0;
+// --- Logout ---
+function logout() { signOut(auth).then(()=>window.location.href="login.html"); }
+window.logout = logout;
+
+// --- Load Loans ---
+function loadLoans(uid, role) {
+  const loanTableBody = document.querySelector("#loanTable tbody");
+  const loanCardsDiv = document.getElementById("loanCards");
+
+  const loansCol = collection(db, "loans");
+  const q = query(loansCol, orderBy("dateRequested","desc"));
+
+  onSnapshot(q, (snapshot) => {
+    loanTableBody.innerHTML="";
+    loanCardsDiv.innerHTML="";
+    snapshot.forEach(docSnap => {
+      const loan = docSnap.data();
+      const cardClass = loan.status==="approved"?"green":loan.status==="pending"?"yellow":"red";
+      loanCardsDiv.innerHTML+=`
+        <div class="loan-card ${cardClass}">
+          <h4>${loan.memberName}</h4>
+          <p>Amount: ${loan.amount}</p>
+          <p>Status: ${loan.status}</p>
+          <p>Repayment: ${loan.repaymentDate||"-"}</p>
+        </div>
+      `;
+      let row = document.createElement("tr");
+      row.innerHTML=`
+        <td>${loan.amount}</td>
+        <td>${loan.dateRequested}</td>
+        <td>${loan.dateApproved||"-"}</td>
+        <td>${loan.repaymentDate||"-"}</td>
+        <td>${loan.status}</td>
+        <td>${loan.duration||"-"}</td>
+        <td>${role==="admin" && loan.status==="pending"?`<button class="approveBtn" onclick="approveLoan('${docSnap.id}')">Approve</button>
+            <button class="rejectBtn" onclick="rejectLoan('${docSnap.id}')">Reject</button>`:"-"}</td>
+      `;
+      loanTableBody.appendChild(row);
+    });
   });
 }
 
-// Render loans
-function renderLoans(member){
-  loanCardsDiv.innerHTML="";
-  loanTableBody.innerHTML="";
-  member.loanRequests.forEach(loan=>{
-    // Loan card
-    const card = document.createElement("div");
-    const today = new Date();
-    const repayment = new Date(loan.repaymentDate);
-    const diffDays = Math.ceil((repayment - today)/(1000*60*60*24));
-    let colorClass = loan.status==="Approved"?"green":loan.status==="Rejected"?"red":"yellow";
-    card.className=`loan-card ${colorClass}`;
-    card.innerHTML=`<h4>Loan: ${loan.amount}</h4>
-                    <p>Status: ${loan.status}</p>
-                    <p>Approved On: ${loan.approvedDate||"-"}</p>
-                    <p>Repayment Date: ${loan.repaymentDate||"-"}</p>
-                    <p>Days Remaining: ${diffDays>=0?diffDays:0}</p>`;
-    loanCardsDiv.appendChild(card);
+// --- Approve / Reject Loans ---
+window.approveLoan = async (loanId) => {
+  const loanRef = doc(db,"loans",loanId);
+  const today = new Date();
+  await updateDoc(loanRef,{status:"approved",dateApproved:new Date().toLocaleDateString(),repaymentDate:new Date(today.setDate(today.getDate()+30)).toLocaleDateString()});
+};
+window.rejectLoan = async (loanId) => { await updateDoc(doc(db,"loans",loanId),{status:"rejected"}); };
 
-    // Loan table
-    const row = loanTableBody.insertRow();
-    row.insertCell(0).textContent = loan.amount;
-    row.insertCell(1).textContent = loan.requestDate;
-    row.insertCell(2).textContent = loan.approvedDate||"-";
-    row.insertCell(3).textContent = loan.repaymentDate||"-";
-    row.insertCell(4).textContent = loan.status;
-    row.insertCell(5).textContent = diffDays>=0?diffDays:0;
+// --- Load Monthly Savings ---
+function loadMonthly(uid, role) {
+  const monthlyTableBody = document.querySelector("#monthlyTable tbody");
+  const monthlyCol = collection(db, "users");
+  onSnapshot(doc(db,"users",uid),(snap)=>{
+    const data = snap.data();
+    if(!data) return;
+    monthlyTableBody.innerHTML="";
+    for(const month in data.monthly) {
+      const m = data.monthly[month];
+      let tr = document.createElement("tr");
+      tr.innerHTML=`
+        <td>${month}</td>
+        <td>${m.saved}</td>
+        <td>${m.fines}</td>
+        <td>${m.interestGained}</td>
+        <td>-</td>
+      `;
+      monthlyTableBody.appendChild(tr);
+    }
   });
 }
 
-function logout(){ 
-  localStorage.removeItem("loggedInUser"); 
-  window.location.href="login.html"; 
-}
+// --- PDF Statement ---
+window.generateStatement = () => { alert("Statement generated here (customize as needed)"); };
+window.downloadStatementPDF = () => { alert("PDF download here (customize as needed)"); };
+
+// --- Admin Functions ---
+window.addMember = async () => {
+  const name = document.getElementById("newMemberName").value.trim();
+  if(!name) { alert("Enter member name"); return; }
+  const usersCol = collection(db,"users");
+  const docRef = doc(db,"users",name.replace(/\s/g,"_").toLowerCase());
+  await setDoc(docRef,{name:name,role:"member",monthly:{},loanRequests:[]});
+  alert("Member added successfully!");
+};
+
 </script>
 </body>
 </html>
