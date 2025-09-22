@@ -15,41 +15,39 @@ button:hover { background: #034b02; }
 </style>
 </head>
 <body>
+
 <div class="login-box">
   <h2>NTG Member Login</h2>
-  <input type="text" id="username" placeholder="Username" required aria-label="Username">
-  <input type="password" id="password" placeholder="Password" required aria-label="Password">
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
   <span class="toggle-pass" onclick="togglePassword()">Show Password</span>
   <button onclick="login()">Submit</button>
   <span class="forgot-pass" onclick="forgotPassword()">Forgot Password?</span>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
-// --- Firebase Configuration ---
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
+  databaseURL: "https://ntgsavings-loansgroup-default-rtdb.firebaseio.com",
   projectId: "ntgsavings-loansgroup",
   storageBucket: "ntgsavings-loansgroup.appspot.com",
   messagingSenderId: "836958799412",
-  appId: "1:836958799412:web:26540535294f3c9d2f2c61",
-  measurementId: "G-QMPM1RL98B"
+  appId: "1:836958799412:web:26540535294f3c9d2f2c61"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const db = getDatabase(app);
 
 function togglePassword() {
-  const passInput = document.getElementById("password");
-  const toggleText = document.querySelector(".toggle-pass");
-  if (passInput.type === "password") {
-    passInput.type = "text"; toggleText.textContent = "Hide Password";
-  } else { passInput.type = "password"; toggleText.textContent = "Show Password"; }
+  const p = document.getElementById("password");
+  const t = document.querySelector(".toggle-pass");
+  if (p.type === "password") { p.type="text"; t.textContent="Hide Password"; }
+  else { p.type="password"; t.textContent="Show Password"; }
 }
 
 function forgotPassword() {
@@ -60,26 +58,34 @@ async function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value;
 
-  // Admin login shortcut
-  if (username === "Admin" && password === "Admin@ntg") {
-    localStorage.setItem("loggedInUser","Admin");
-    localStorage.setItem("isAdmin","true");
+  // Admin login
+  if(username === "Admin" && password === "Admin@ntg") {
+    localStorage.setItem("loggedInUser", "Admin");
+    localStorage.setItem("isAdmin", "true");
     window.location.href = "admin.html";
     return;
   }
 
   try {
-    // Assuming username is the email for Firebase Auth
-    const userCredential = await signInWithEmailAndPassword(auth, username, password);
-    const user = userCredential.user;
-    localStorage.setItem("loggedInUser", user.email);
-    localStorage.removeItem("isAdmin");
-    window.location.href = "dashboard.html";
-  } catch (error) {
-    alert("❌ Invalid username/email or password!");
-    console.error(error);
+    const snap = await get(ref(db, 'members/' + username));
+    if(snap.exists()) {
+      const member = snap.val();
+      if(member.password === password) {
+        localStorage.setItem("loggedInUser", username);
+        localStorage.removeItem("isAdmin");
+        window.location.href = "dashboard.html";
+      } else {
+        alert("❌ Wrong password!");
+      }
+    } else {
+      alert("❌ User not found!");
+    }
+  } catch(err) {
+    console.error(err);
+    alert("❌ Error connecting to database.");
   }
 }
 </script>
+
 </body>
 </html>
