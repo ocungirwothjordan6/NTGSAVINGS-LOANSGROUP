@@ -3,56 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NTG Member Dashboard</title>
+<title>NTG Dashboard</title>
 <style>
-body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #edf2f7; }
-header { padding: 1rem 2rem; background: #2b6cb0; color: white; display: flex; justify-content: space-between; align-items: center; }
-header h1 { margin:0; font-size:1.5rem; }
-header button { padding:0.5rem 1rem; background:#e53e3e; border:none; color:white; border-radius:6px; cursor:pointer; }
-header button:hover { background:#c53030; }
-.container { max-width:1200px; margin:2rem auto; background:white; padding:2rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-table { width:100%; border-collapse:collapse; margin-bottom:1.5rem; }
-th, td { border:1px solid #e2e8f0; padding:0.5rem; text-align:center; }
-th { background:#2b6cb0; color:white; }
-.loan-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:1rem; margin-bottom:2rem; }
-.loan-card { padding:1rem; border-radius:10px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-.loan-card.green { background:#28a745; }
-.loan-card.yellow { background:#f6e05e; color:#1a202c; }
+/* --- Styles similar to your previous dashboard --- */
+body { font-family: 'Inter', sans-serif; background: #f7f9fc; color: #2d3748; }
+header { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+header h1 { margin:0; font-size:1.5rem; font-weight:600; }
+header .nav-container { display:flex; gap:0.75rem; }
+button { border:none; padding:0.75rem 1.5rem; border-radius:8px; cursor:pointer; font-size:0.9rem; font-weight:500; transition:all 0.3s ease; }
+.container { max-width:1280px; margin:2rem auto; background:white; padding:2rem; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); overflow-x:auto; }
+h2 { margin:0 0 1.5rem; font-size:1.25rem; font-weight:600; }
+input, select { padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem; width:100%; max-width:350px; }
+table { width:100%; border-collapse:collapse; margin-bottom:1.5rem; min-width:600px; }
+th, td { border:1px solid #e2e8f0; padding:0.75rem; text-align:center; }
+tr:nth-child(even){background:#f7fafc;}
+tr:hover{background:#edf2f7;}
+button.editBtn, button.saveBtn, button.approveBtn, button.rejectBtn { padding:0.5rem 1rem; margin:0 3px; border-radius:6px; font-size:0.85rem; }
+button.editBtn { background:#3182ce;color:white; } 
+button.saveBtn { background:#28a745;color:white; } 
+button.approveBtn { background:#046307;color:white; } 
+button.rejectBtn { background:#e53e3e;color:white; }
+.loan-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:1.5rem; margin-bottom:2rem; }
+.loan-card { padding:1.5rem; border-radius:10px; color:white; box-shadow:0 4px 12px rgba(0,0,0,0.1); transition:transform 0.3s ease,box-shadow 0.3s ease; }
+.loan-card.green { background:#28a745; } 
+.loan-card.yellow { background:#f6e05e;color:#1a202c; } 
 .loan-card.red { background:#e53e3e; }
-.loan-card p { margin:0.25rem 0; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>NTG Member Dashboard</h1>
-  <button onclick="logout()">Logout</button>
+<header id="header">
+  <h1 id="headerTitle">NTG Dashboard</h1>
+  <div class="nav-container">
+    <button class="navBtn active" onclick="showSection('dashboard')" id="dashboardNav">Dashboard</button>
+    <button class="logoutBtn" onclick="logout()">Logout</button>
+  </div>
 </header>
 
-<div class="container">
+<div class="container" id="dashboardSection">
   <h2 id="welcomeTitle"></h2>
-
-  <h3>Monthly Savings</h3>
+  <h2>Monthly Savings</h2>
   <table id="monthlyTable">
     <thead>
       <tr>
-        <th>Month</th><th>Saved</th><th>Fines</th><th>Interest</th>
+        <th>Month</th><th>Saved</th><th>Fines</th><th>Interest Gained</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <h3>Loans</h3>
+  <h2>Loans</h2>
   <div class="loan-cards" id="loanCards"></div>
 
-  <h3>Download Statement</h3>
-  <select id="statementMonth">
-    <option value="All">All Months</option>
-    <option>January</option><option>February</option><option>March</option><option>April</option>
-    <option>May</option><option>June</option><option>July</option><option>August</option>
-    <option>September</option><option>October</option><option>November</option><option>December</option>
-  </select>
-  <button onclick="downloadStatementPDF()">Download PDF</button>
+  <h2>Loan Requests</h2>
+  <table id="loanTable">
+    <thead>
+      <tr>
+        <th>Amount</th><th>Requested On</th><th>Approved On</th><th>Repayment Date</th><th>Status</th><th>Days Remaining</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script type="module">
@@ -61,83 +72,83 @@ import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/fireb
 import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAZO0T9eGAwyd8nZ-A4p9AjaMiCuYamhM4",
   authDomain: "ntgsavings-loansgroup.firebaseapp.com",
-  databaseURL: "https://ntgsavings-loansgroup-default-rtdb.firebaseio.com",
   projectId: "ntgsavings-loansgroup",
   storageBucket: "ntgsavings-loansgroup.appspot.com",
   messagingSenderId: "836958799412",
-  appId: "1:836958799412:web:26540535294f3c9d2f2c61"
+  appId: "1:836958799412:web:26540535294f3c9d2f2c61",
+  measurementId: "G-QMPM1RL98B"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const loggedInUser = localStorage.getItem("loggedInUser");
-if(!loggedInUser) window.location.href="login.html";
+if(!loggedInUser){ window.location.href="login.html"; }
 
-document.getElementById("welcomeTitle").textContent = `Welcome, ${loggedInUser}`;
+document.getElementById("welcomeTitle").textContent = "Welcome, " + loggedInUser;
 
+const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const monthlyTableBody = document.querySelector("#monthlyTable tbody");
 const loanCardsDiv = document.getElementById("loanCards");
-const statementMonthSelect = document.getElementById("statementMonth");
+const loanTableBody = document.querySelector("#loanTable tbody");
 
-// Live data updates
-const memberRef = ref(db, `members/${loggedInUser}`);
-onValue(memberRef, (snap)=>{
-  if(!snap.exists()) return;
-  const member = snap.val();
+const userRef = ref(db, `members/${loggedInUser}`);
 
-  // Monthly table
-  monthlyTableBody.innerHTML = "";
-  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  months.forEach(m=>{
-    const row = document.createElement("tr");
-    const data = member.monthly?.[m] || {saved:0, fines:0, interest:0};
-    row.innerHTML = `<td>${m}</td><td>${data.saved}</td><td>${data.fines}</td><td>${data.interest}</td>`;
-    monthlyTableBody.appendChild(row);
-  });
-
-  // Loans
-  loanCardsDiv.innerHTML="";
-  (member.loanRequests||[]).forEach(l=>{
-    const card = document.createElement("div");
-    let color="yellow";
-    if(l.status==="approved") color="green";
-    if(l.status==="rejected") color="red";
-    card.className = `loan-card ${color}`;
-    card.innerHTML = `<p>Amount: ${l.amount}</p><p>Status: ${l.status}</p><p>Requested: ${l.dateRequested}</p><p>Repayment: ${l.repaymentDate||"-"}</p>`;
-    loanCardsDiv.appendChild(card);
-  });
+// Real-time listener
+onValue(userRef, (snapshot)=>{
+  const data = snapshot.val();
+  renderMonthly(data);
+  renderLoans(data);
 });
 
-// PDF generation
-function downloadStatementPDF() {
-  const month = statementMonthSelect.value;
-  const doc = new jsPDF();
-  doc.text(`Statement for ${month}`,10,10);
-  onValue(memberRef, snap=>{
-    if(!snap.exists()) return;
-    const member = snap.val();
-    let data=[];
-    if(month==="All") {
-      Object.entries(member.monthly||{}).forEach(([m, v])=>{
-        data.push([m, v.saved||0, v.fines||0, v.interest||0]);
-      });
-    } else {
-      const v = member.monthly?.[month] || {saved:0,fines:0,interest:0};
-      data.push([month,v.saved,v.fines,v.interest]);
-    }
-    doc.autoTable({head:[["Month","Saved","Fines","Interest"]], body:data});
-    doc.save(`statement_${month}.pdf`);
-  }, {onlyOnce:true});
+// Render monthly savings table
+function renderMonthly(member){
+  monthlyTableBody.innerHTML="";
+  months.forEach(m=>{
+    const row = monthlyTableBody.insertRow();
+    row.insertCell(0).textContent = m;
+    row.insertCell(1).textContent = member.monthly[m]?.saved||0;
+    row.insertCell(2).textContent = member.monthly[m]?.fines||0;
+    row.insertCell(3).textContent = member.monthly[m]?.interest||0;
+  });
 }
 
-// Logout
-function logout() { localStorage.removeItem("loggedInUser"); window.location.href="login.html"; }
-</script>
+// Render loans
+function renderLoans(member){
+  loanCardsDiv.innerHTML="";
+  loanTableBody.innerHTML="";
+  member.loanRequests.forEach(loan=>{
+    // Loan card
+    const card = document.createElement("div");
+    const today = new Date();
+    const repayment = new Date(loan.repaymentDate);
+    const diffDays = Math.ceil((repayment - today)/(1000*60*60*24));
+    let colorClass = loan.status==="Approved"?"green":loan.status==="Rejected"?"red":"yellow";
+    card.className=`loan-card ${colorClass}`;
+    card.innerHTML=`<h4>Loan: ${loan.amount}</h4>
+                    <p>Status: ${loan.status}</p>
+                    <p>Approved On: ${loan.approvedDate||"-"}</p>
+                    <p>Repayment Date: ${loan.repaymentDate||"-"}</p>
+                    <p>Days Remaining: ${diffDays>=0?diffDays:0}</p>`;
+    loanCardsDiv.appendChild(card);
 
+    // Loan table
+    const row = loanTableBody.insertRow();
+    row.insertCell(0).textContent = loan.amount;
+    row.insertCell(1).textContent = loan.requestDate;
+    row.insertCell(2).textContent = loan.approvedDate||"-";
+    row.insertCell(3).textContent = loan.repaymentDate||"-";
+    row.insertCell(4).textContent = loan.status;
+    row.insertCell(5).textContent = diffDays>=0?diffDays:0;
+  });
+}
+
+function logout(){ 
+  localStorage.removeItem("loggedInUser"); 
+  window.location.href="login.html"; 
+}
+</script>
 </body>
 </html>
